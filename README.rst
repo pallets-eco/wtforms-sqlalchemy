@@ -1,7 +1,7 @@
 WTForms-SQLAlchemy
 ==================
 
-WTForms-Django is a fork of the ``wtforms.ext.sqlalchemy`` package from WTForms.
+WTForms-SQLAlchemy is a fork of the ``wtforms.ext.sqlalchemy`` package from WTForms.
 The package has been renamed to ``wtforms_sqlalchemy`` but otherwise should
 function the same as ``wtforms.ext.sqlalchemy`` did.
 

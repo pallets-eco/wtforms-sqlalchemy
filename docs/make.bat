@@ -99,9 +99,9 @@ if "%1" == "qthelp" (
 	echo.
 	echo.Build finished; now you can run "qcollectiongenerator" with the ^
 .qhcp project file in %BUILDDIR%/qthelp, like this:
-	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\WTForms-Django.qhcp
+	echo.^> qcollectiongenerator %BUILDDIR%\qthelp\WTForms-SQLAlchemy.qhcp
 	echo.To view the help file:
-	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\WTForms-Django.ghc
+	echo.^> assistant -collectionFile %BUILDDIR%\qthelp\WTForms-SQLAlchemy.ghc
 	goto end
 )
 
