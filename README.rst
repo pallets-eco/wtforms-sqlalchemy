@@ -1,13 +1,13 @@
-WTForms-Django
-==============
+WTForms-SQLAlchemy
+==================
 
-WTForms-Django is a fork of the ``wtforms.ext.django`` package from WTForms.
-The package has been renamed to ``wtforms_django`` but otherwise should
-function the same as ``wtforms.ext.django`` did.
+WTForms-Django is a fork of the ``wtforms.ext.sqlalchemy`` package from WTForms.
+The package has been renamed to ``wtforms_sqlalchemy`` but otherwise should
+function the same as ``wtforms.ext.sqlalchemy`` did.
 
 to install::
 	
-	pip install https://github.com/wtforms/wtforms-django/archive/master.zip
+	pip install https://github.com/wtforms/wtforms-sqlalchemy/archive/master.zip
 
 (pypi package coming soon)
 
