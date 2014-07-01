@@ -7,24 +7,23 @@ python:
 
 env:
   global:
-    - WTFORMS=WTForms==1.0.5
+    - WTFORMS="<2.1"
   matrix:
     - SQLALCHEMY=0.7.10
-    - SQLALCHEMY=0.8.5
-    - SQLALCHEMY=0.8.5 WTFORMS=wtforms2
-    - SQLALCHEMY=0.9.3
-    - SQLALCHEMY=0.9.3 WTFORMS=wtforms2
+    - SQLALCHEMY=0.8.6
+    - SQLALCHEMY=0.8.6 WTFORMS="==1.0.5"
+    - SQLALCHEMY=0.9.6
+    - SQLALCHEMY=0.9.6 WTFORMS="==1.0.5"
 
 
 # command to install dependencies
 install:
-  - "if [ $WTFORMS = wtforms2 ]; then export WTFORMS=https://github.com/wtforms/wtforms/archive/master.zip; fi"
-  - "pip install $WTFORMS SQLAlchemy==$SQLALCHEMY --use-mirrors"
-  - "pip install . --use-mirrors"
-  - "pip install -r tests/requirements.txt --use-mirrors"
+  - "pip install WTForms$WTFORMS SQLAlchemy==$SQLALCHEMY"
+  - "pip install ."
+  - "pip install -r tests/requirements.txt"
 
 # command to run tests
-script: coverage run --source=wtforms_sqlalchemy setup.py test
+script: coverage run setup.py test
 after_success:
   - pip install coveralls
   - coveralls

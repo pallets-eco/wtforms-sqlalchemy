@@ -1,0 +1,8 @@
+[run]
+include =
+    wtforms_sqlalchemy/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    except ImportError:
