@@ -7,9 +7,8 @@ function the same as ``wtforms.ext.sqlalchemy`` did.
 
 to install::
 	
-	pip install https://github.com/wtforms/wtforms-sqlalchemy/archive/master.zip
+	pip install WTForms-SQLAlchemy
 
-(pypi package coming soon)
 
 Rationale
 ---------

@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='WTForms-SQLAlchemy',
-    version='0.1dev',
+    version='0.1',
     url='http://github.com/wtforms/wtforms-sqlalchemy/',
     license='BSD',
     author='Thomas Johansson, James Crasta',
@@ -21,6 +21,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
