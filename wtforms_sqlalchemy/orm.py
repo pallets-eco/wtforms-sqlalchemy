@@ -187,9 +187,8 @@ class ModelConverter(ModelConverterBase):
 
     @converts('Numeric', 'Float')
     def handle_decimal_types(self, column, field_args, **extra):
-        places = getattr(column.type, 'scale', 2)
-        if places is not None:
-            field_args['places'] = places
+        # override default decimal places limit, use database defaults instead
+        field_args.setdefault('places', None)
         return f.DecimalField(**field_args)
 
     @converts('databases.mysql.MSYear', 'dialects.mysql.base.YEAR')
