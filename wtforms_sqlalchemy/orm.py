@@ -4,7 +4,6 @@ Tools for generating forms based on SQLAlchemy models.
 from __future__ import unicode_literals
 
 import inspect
-import warnings
 
 from wtforms import fields as f
 from wtforms import validators
@@ -13,12 +12,6 @@ from .fields import QuerySelectField, QuerySelectMultipleField
 
 __all__ = (
     'model_fields', 'model_form',
-)
-
-
-warnings.warn(
-    'wtforms.ext.sqlalchemy.orm is deprecated, and will be removed in WTForms 3.0.',
-    DeprecationWarning
 )
 
 
