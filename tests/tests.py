@@ -12,7 +12,7 @@ from wtforms.compat import text_type, iteritems
 from wtforms_sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
 from wtforms import Form, fields
 from wtforms_sqlalchemy.orm import model_form, ModelConversionError, ModelConverter
-from wtforms.validators import Optional, Required
+from wtforms.validators import Optional, Required, Regexp
 from .common import DummyPostData, contains_validator
 
 
@@ -237,6 +237,14 @@ class ModelFormTest(TestCase):
         student_form = model_form(self.Student, self.sess)()
         assert contains_validator(student_form.dob, Optional)
         assert contains_validator(student_form.full_name, Required)
+
+    def test_field_args(self):
+        shared = {'full_name': {'validators': [Regexp('test')]}}
+        student_form = model_form(self.Student, self.sess, field_args=shared)()
+        assert contains_validator(student_form.full_name, Regexp)
+
+        # original shared field_args should not be modified
+        assert len(shared['full_name']['validators']) == 1
 
     def test_include_pk(self):
         form_class = model_form(self.Student, self.sess, exclude_pk=False)
