@@ -5,8 +5,7 @@ from __future__ import unicode_literals
 
 import inspect
 
-from wtforms import fields as f
-from wtforms import validators
+from wtforms import validators, fields as wtforms_fields
 from wtforms.form import Form
 from .fields import QuerySelectField, QuerySelectMultipleField
 
@@ -42,6 +41,34 @@ class ModelConverterBase(object):
 
         self.converters = converters
 
+    def get_converter(self, column):
+        """
+        Searches `self.converters` for a converter method with an argument that
+        matches the column's type.
+        """
+        if self.use_mro:
+            types = inspect.getmro(type(column.type))
+        else:
+            types = [type(column.type)]
+
+        # Search by module + name
+        for col_type in types:
+            type_string = '%s.%s' % (col_type.__module__, col_type.__name__)
+
+            # remove the 'sqlalchemy.' prefix for sqlalchemy <0.7 compatibility
+            if type_string.startswith('sqlalchemy'):
+                type_string = type_string[11:]
+
+            if type_string in self.converters:
+                return self.converters[type_string]
+
+        # Search by name
+        for col_type in types:
+            if col_type.__name__ in self.converters:
+                return self.converters[col_type.__name__]
+
+        raise ModelConversionError('Could not find field converter for %s (%r).' % (prop.key, types[0]))
+
     def convert(self, model, mapper, prop, field_args, db_session=None):
         if not hasattr(prop, 'columns') and not hasattr(prop, 'direction'):
             return
@@ -65,7 +92,6 @@ class ModelConverterBase(object):
 
         converter = None
         column = None
-        types = None
 
         if not hasattr(prop, 'direction'):
             column = prop.columns[0]
@@ -91,26 +117,7 @@ class ModelConverterBase(object):
             else:
                 kwargs['validators'].append(validators.Required())
 
-            if self.use_mro:
-                types = inspect.getmro(type(column.type))
-            else:
-                types = [type(column.type)]
-
-            for col_type in types:
-                type_string = '%s.%s' % (col_type.__module__, col_type.__name__)
-                if type_string.startswith('sqlalchemy'):
-                    type_string = type_string[11:]
-
-                if type_string in self.converters:
-                    converter = self.converters[type_string]
-                    break
-            else:
-                for col_type in types:
-                    if col_type.__name__ in self.converters:
-                        converter = self.converters[col_type.__name__]
-                        break
-                else:
-                    raise ModelConversionError('Could not find field converter for %s (%r).' % (prop.key, types[0]))
+            converter = self.get_converter(column)
         else:
             # We have a property with a direction.
             if not db_session:
@@ -148,68 +155,68 @@ class ModelConverter(ModelConverterBase):
         if isinstance(column.type.length, int) and column.type.length:
             field_args['validators'].append(validators.Length(max=column.type.length))
 
-    @converts('String', 'Unicode')
+    @converts('String')  # includes Unicode
     def conv_String(self, field_args, **extra):
         self._string_common(field_args=field_args, **extra)
-        return f.TextField(**field_args)
+        return wtforms_fields.StringField(**field_args)
 
-    @converts('types.Text', 'UnicodeText', 'types.LargeBinary', 'types.Binary', 'sql.sqltypes.Text')
+    @converts('Text', 'LargeBinary', 'Binary')  # includes UnicodeText
     def conv_Text(self, field_args, **extra):
         self._string_common(field_args=field_args, **extra)
-        return f.TextAreaField(**field_args)
+        return wtforms_fields.TextAreaField(**field_args)
 
-    @converts('Boolean')
+    @converts('Boolean', 'dialects.mssql.base.BIT')
     def conv_Boolean(self, field_args, **extra):
-        return f.BooleanField(**field_args)
+        return wtforms_fields.BooleanField(**field_args)
 
     @converts('Date')
     def conv_Date(self, field_args, **extra):
-        return f.DateField(**field_args)
+        return wtforms_fields.DateField(**field_args)
 
     @converts('DateTime')
     def conv_DateTime(self, field_args, **extra):
-        return f.DateTimeField(**field_args)
+        return wtforms_fields.DateTimeField(**field_args)
 
     @converts('Enum')
     def conv_Enum(self, column, field_args, **extra):
         field_args['choices'] = [(e, e) for e in column.type.enums]
-        return f.SelectField(**field_args)
+        return wtforms_fields.SelectField(**field_args)
 
-    @converts('Integer', 'SmallInteger')
+    @converts('Integer')  # includes BigInteger and SmallInteger
     def handle_integer_types(self, column, field_args, **extra):
         unsigned = getattr(column.type, 'unsigned', False)
         if unsigned:
             field_args['validators'].append(validators.NumberRange(min=0))
-        return f.IntegerField(**field_args)
+        return wtforms_fields.IntegerField(**field_args)
 
-    @converts('Numeric', 'Float')
+    @converts('Numeric')  # includes DECIMAL, Float/FLOAT, REAL, and DOUBLE
     def handle_decimal_types(self, column, field_args, **extra):
         # override default decimal places limit, use database defaults instead
         field_args.setdefault('places', None)
-        return f.DecimalField(**field_args)
+        return wtforms_fields.DecimalField(**field_args)
 
-    @converts('databases.mysql.MSYear', 'dialects.mysql.base.YEAR')
+    @converts('dialects.mysql.base.YEAR')
     def conv_MSYear(self, field_args, **extra):
         field_args['validators'].append(validators.NumberRange(min=1901, max=2155))
-        return f.TextField(**field_args)
+        return wtforms_fields.StringField(**field_args)
 
-    @converts('databases.postgres.PGInet', 'dialects.postgresql.base.INET')
+    @converts('dialects.postgresql.base.INET')
     def conv_PGInet(self, field_args, **extra):
         field_args.setdefault('label', 'IP Address')
         field_args['validators'].append(validators.IPAddress())
-        return f.TextField(**field_args)
+        return wtforms_fields.StringField(**field_args)
 
     @converts('dialects.postgresql.base.MACADDR')
     def conv_PGMacaddr(self, field_args, **extra):
         field_args.setdefault('label', 'MAC Address')
         field_args['validators'].append(validators.MacAddress())
-        return f.TextField(**field_args)
+        return wtforms_fields.StringField(**field_args)
 
     @converts('dialects.postgresql.base.UUID')
     def conv_PGUuid(self, field_args, **extra):
         field_args.setdefault('label', 'UUID')
         field_args['validators'].append(validators.UUID())
-        return f.TextField(**field_args)
+        return wtforms_fields.StringField(**field_args)
 
     @converts('MANYTOONE')
     def conv_ManyToOne(self, field_args, **extra):

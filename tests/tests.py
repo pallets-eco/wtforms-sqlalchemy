@@ -1,10 +1,12 @@
 from __future__ import unicode_literals, absolute_import
 
-from sqlalchemy import create_engine, ForeignKey
+from sqlalchemy import create_engine, ForeignKey, types as sqla_types
 from sqlalchemy.schema import MetaData, Table, Column, ColumnDefault
-from sqlalchemy.types import String, Integer, Numeric, Date, Text, Enum, Boolean, DateTime
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import INET, MACADDR, UUID
+from sqlalchemy.dialects.mysql import YEAR
+from sqlalchemy.dialects.mssql import BIT
 
 from unittest import TestCase
 
@@ -27,7 +29,7 @@ class Base(object):
             setattr(self, k, v)
 
 
-class AnotherInteger(Integer):
+class AnotherInteger(sqla_types.Integer):
     """Use me to test if MRO works like we want"""
 
 
@@ -37,14 +39,14 @@ class TestBase(TestCase):
 
         test_table = Table(
             'test', metadata,
-            Column('id', Integer, primary_key=True, nullable=False),
-            Column('name', String, nullable=False),
+            Column('id', sqla_types.Integer, primary_key=True, nullable=False),
+            Column('name', sqla_types.String, nullable=False),
         )
 
         pk_test_table = Table(
             'pk_test', metadata,
-            Column('foobar', String, primary_key=True, nullable=False),
-            Column('baz', String, nullable=False),
+            Column('foobar', sqla_types.String, primary_key=True, nullable=False),
+            Column('baz', sqla_types.String, nullable=False),
         )
 
         Test = type(str('Test'), (Base, ), {})
@@ -188,33 +190,33 @@ class ModelFormTest(TestCase):
 
         student_course = Table(
             'student_course', Model.metadata,
-            Column('student_id', Integer, ForeignKey('student.id')),
-            Column('course_id', Integer, ForeignKey('course.id'))
+            Column('student_id', sqla_types.Integer, ForeignKey('student.id')),
+            Column('course_id', sqla_types.Integer, ForeignKey('course.id'))
         )
 
         class Course(Model):
             __tablename__ = "course"
-            id = Column(Integer, primary_key=True)
-            name = Column(String(255), nullable=False)
+            id = Column(sqla_types.Integer, primary_key=True)
+            name = Column(sqla_types.String(255), nullable=False)
             # These are for better model form testing
-            cost = Column(Numeric(5, 2), nullable=False)
-            description = Column(Text, nullable=False)
-            level = Column(Enum('Primary', 'Secondary'))
-            has_prereqs = Column(Boolean, nullable=False)
-            started = Column(DateTime, nullable=False)
+            cost = Column(sqla_types.Numeric(5, 2), nullable=False)
+            description = Column(sqla_types.Text, nullable=False)
+            level = Column(sqla_types.Enum('Primary', 'Secondary'))
+            has_prereqs = Column(sqla_types.Boolean, nullable=False)
+            started = Column(sqla_types.DateTime, nullable=False)
             grade = Column(AnotherInteger, nullable=False)
 
         class School(Model):
             __tablename__ = "school"
-            id = Column(Integer, primary_key=True)
-            name = Column(String(255), nullable=False)
+            id = Column(sqla_types.Integer, primary_key=True)
+            name = Column(sqla_types.String(255), nullable=False)
 
         class Student(Model):
             __tablename__ = "student"
-            id = Column(Integer, primary_key=True)
-            full_name = Column(String(255), nullable=False, unique=True)
-            dob = Column(Date(), nullable=True)
-            current_school_id = Column(Integer, ForeignKey(School.id), nullable=False)
+            id = Column(sqla_types.Integer, primary_key=True)
+            full_name = Column(sqla_types.String(255), nullable=False, unique=True)
+            dob = Column(sqla_types.Date(), nullable=True)
+            current_school_id = Column(sqla_types.Integer, ForeignKey(School.id), nullable=False)
 
             current_school = relationship(School, backref=backref('students'))
             courses = relationship(
@@ -282,9 +284,6 @@ class ModelFormTest(TestCase):
         form_class = model_form(self.Course, exclude=['students'])
         form = form_class()
         self.assertEqual(len(list(form)), 7)
-        assert isinstance(form.cost, fields.DecimalField)
-        assert isinstance(form.has_prereqs, fields.BooleanField)
-        assert isinstance(form.started, fields.DateTimeField)
 
     def test_only(self):
         desired_fields = ['id', 'cost', 'description']
@@ -311,16 +310,16 @@ class ModelFormColumnDefaultTest(TestCase):
 
         class StudentDefaultScoreCallable(Model):
             __tablename__ = "course"
-            id = Column(Integer, primary_key=True)
-            name = Column(String(255), nullable=False)
-            score = Column(Integer, default=default_score, nullable=False)
+            id = Column(sqla_types.Integer, primary_key=True)
+            name = Column(sqla_types.String(255), nullable=False)
+            score = Column(sqla_types.Integer, default=default_score, nullable=False)
 
         class StudentDefaultScoreScalar(Model):
             __tablename__ = "school"
-            id = Column(Integer, primary_key=True)
-            name = Column(String(255), nullable=False)
+            id = Column(sqla_types.Integer, primary_key=True)
+            name = Column(sqla_types.String(255), nullable=False)
             # Default scalar value
-            score = Column(Integer, default=10, nullable=False)
+            score = Column(sqla_types.Integer, default=10, nullable=False)
 
         self.StudentDefaultScoreCallable = StudentDefaultScoreCallable
         self.StudentDefaultScoreScalar = StudentDefaultScoreScalar
@@ -339,3 +338,69 @@ class ModelFormColumnDefaultTest(TestCase):
         student_form = model_form(self.StudentDefaultScoreScalar, self.sess)()
         assert not isinstance(student_form._fields['score'].default, ColumnDefault)
         self.assertEqual(student_form._fields['score'].default, 10)
+
+
+class ModelFormTest(TestCase):
+    def setUp(self):
+        Model = declarative_base()
+
+        class AllTypesModel(Model):
+            __tablename__ = "course"
+            id = Column(sqla_types.Integer, primary_key=True)
+            string = Column(sqla_types.String)
+            unicode = Column(sqla_types.Unicode)
+            varchar = Column(sqla_types.VARCHAR)
+            integer = Column(sqla_types.Integer)
+            biginteger = Column(sqla_types.BigInteger)
+            smallinteger = Column(sqla_types.SmallInteger)
+            numeric = Column(sqla_types.Numeric)
+            float = Column(sqla_types.Float)
+            text = Column(sqla_types.Text)
+            binary = Column(sqla_types.Binary)
+            largebinary = Column(sqla_types.LargeBinary)
+            unicodetext = Column(sqla_types.UnicodeText)
+            enum = Column(sqla_types.Enum('Primary', 'Secondary'))
+            boolean = Column(sqla_types.Boolean)
+            datetime = Column(sqla_types.DateTime)
+            timestamp = Column(sqla_types.TIMESTAMP)
+            date = Column(sqla_types.Date)
+            postgres_inet = Column(INET)
+            postgres_macaddr = Column(MACADDR)
+            postgres_uuid = Column(UUID)
+            mysql_year = Column(YEAR)
+            mssql_bit = Column(BIT)
+
+        self.AllTypesModel = AllTypesModel
+
+    def test_convert_types(self):
+        form = model_form(self.AllTypesModel)()
+
+        assert isinstance(form.string, fields.StringField)
+        assert isinstance(form.unicode, fields.StringField)
+        assert isinstance(form.varchar, fields.StringField)
+        assert isinstance(form.postgres_inet, fields.StringField)
+        assert isinstance(form.postgres_macaddr, fields.StringField)
+        assert isinstance(form.postgres_uuid, fields.StringField)
+        assert isinstance(form.mysql_year, fields.StringField)
+
+        assert isinstance(form.integer, fields.IntegerField)
+        assert isinstance(form.biginteger, fields.IntegerField)
+        assert isinstance(form.smallinteger, fields.IntegerField)
+
+        assert isinstance(form.numeric, fields.DecimalField)
+        assert isinstance(form.float, fields.DecimalField)
+
+        assert isinstance(form.text, fields.TextAreaField)
+        assert isinstance(form.binary, fields.TextAreaField)
+        assert isinstance(form.largebinary, fields.TextAreaField)
+        assert isinstance(form.unicodetext, fields.TextAreaField)
+
+        assert isinstance(form.enum, fields.SelectField)
+
+        assert isinstance(form.boolean, fields.BooleanField)
+        assert isinstance(form.mssql_bit, fields.BooleanField)
+
+        assert isinstance(form.datetime, fields.DateTimeField)
+        assert isinstance(form.timestamp, fields.DateTimeField)
+
+        assert isinstance(form.date, fields.DateField)
