@@ -56,6 +56,13 @@ class ModelConverterBase(object):
             'default': None,
         }
 
+        if field_args:
+            kwargs.update(field_args)
+
+        if kwargs['validators']:
+            # Copy to prevent modifying nested mutable values of the original
+            kwargs['validators'] = list(kwargs['validators'])
+
         converter = None
         column = None
         types = None
@@ -122,9 +129,6 @@ class ModelConverterBase(object):
             })
 
             converter = self.converters[prop.direction.name]
-
-        if field_args:
-            kwargs.update(field_args)
 
         return converter(
             model=model,
