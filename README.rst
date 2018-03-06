@@ -19,5 +19,5 @@ not receive any further feature updates. The authors feel that packages
 for companion libraries work better with their own release schedule and
 the ability to diverge more from WTForms.
 
-This package is currently looking for a permanent maintainer, and if you 
-wish to maintain this package please contact ``wtforms@simplecodes.com``.
+This package is currently looking for a maintainer. If you want to
+help maintain this package please contact davidism@gmail.com.
