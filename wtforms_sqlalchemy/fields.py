@@ -4,7 +4,6 @@ Useful form fields for use with SQLAlchemy ORM.
 from __future__ import unicode_literals
 
 import operator
-from functools import partial
 
 from wtforms import widgets
 from wtforms.compat import text_type, string_types
@@ -187,18 +186,14 @@ class QuerySelectMultipleField(QuerySelectField):
                     raise ValidationError(self.gettext('Not a valid choice'))
 
 
-QueryRadioField = partial(
-    QuerySelectField,
-    widget=widgets.ListWidget(prefix_label=False),
-    option_widget=widgets.RadioInput(),
-)
+class QueryRadioField(QuerySelectField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.RadioInput()
 
 
-QueryCheckboxField = partial(
-    QuerySelectMultipleField,
-    widget=widgets.ListWidget(prefix_label=False),
-    option_widget=widgets.CheckboxInput(),
-)
+class QueryCheckboxField(QuerySelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 
 def get_pk_from_identity(obj):
