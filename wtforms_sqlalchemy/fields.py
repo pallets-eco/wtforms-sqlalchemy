@@ -19,6 +19,7 @@ except ImportError:
 
 __all__ = (
     'QuerySelectField', 'QuerySelectMultipleField',
+    'QueryRadioField', 'QueryCheckboxField',
 )
 
 
@@ -183,6 +184,16 @@ class QuerySelectMultipleField(QuerySelectField):
             for v in self.data:
                 if v not in obj_list:
                     raise ValidationError(self.gettext('Not a valid choice'))
+
+
+class QueryRadioField(QuerySelectField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.RadioInput()
+
+
+class QueryCheckboxField(QuerySelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 
 def get_pk_from_identity(obj):
