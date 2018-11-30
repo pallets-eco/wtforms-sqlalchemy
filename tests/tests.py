@@ -97,6 +97,16 @@ class QuerySelectFieldTest(TestBase):
         assert not form.validate()
         self.assertEqual(form.a.errors, ['Not a valid choice'])
 
+        # Test query with no results
+        form = F()
+        form.a.query = (
+            sess.query(self.Test)
+            .filter(self.Test.id == 1, self.Test.id != 1)
+            .all()
+        )
+        self.assertEqual(form.a(), [])
+
+
     def test_with_query_factory(self):
         sess = self.Session()
         self._fill(sess)
@@ -133,6 +143,15 @@ class QuerySelectFieldTest(TestBase):
         self.assertEqual(form.a.errors, ['Not a valid choice'])
         self.assertEqual(form.b.errors, [])
         self.assertEqual(form.b.data, None)
+
+        # Test query with no results
+        form = F()
+        form.a.query = (
+            sess.query(self.Test)
+            .filter(self.Test.id == 1, self.Test.id != 1)
+            .all()
+        )
+        self.assertEqual(form.a(), [])
 
 
 class QuerySelectMultipleFieldTest(TestBase):
