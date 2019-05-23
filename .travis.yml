@@ -1,25 +1,25 @@
 language: python
 
 python:
-  - 2.6
   - 2.7
-  - 3.3
-  - 3.4
+  - 3.5
+  - 3.6
 
 env:
   global:
-    - WTFORMS="<2.1"
+    - WTFORMS="<3"
   matrix:
-    - SQLALCHEMY=0.7.10
-    - SQLALCHEMY=0.8.6
-    - SQLALCHEMY=0.8.6 WTFORMS="==1.0.5"
-    - SQLALCHEMY=0.9.6
-    - SQLALCHEMY=0.9.8 WTFORMS="==1.0.5"
+    - SQLALCHEMY="==0.7.10"
+    - SQLALCHEMY="~=0.8.6"
+    - SQLALCHEMY="==0.8.6" WTFORMS="==1.0.5"
+    - SQLALCHEMY="~=0.9.6"
+    - SQLALCHEMY="==0.9.8" WTFORMS="==1.0.5"
+    - SQLALCHEMY=""
 
 
 # command to install dependencies
 install:
-  - "pip install WTForms$WTFORMS SQLAlchemy==$SQLALCHEMY"
+  - "pip install WTForms$WTFORMS SQLAlchemy$SQLALCHEMY"
   - "pip install ."
   - "pip install -r tests/requirements.txt"
 
