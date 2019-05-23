@@ -120,7 +120,7 @@ class ModelConverterBase(object):
             converter = self.get_converter(column)
         else:
             # We have a property with a direction.
-            if not db_session:
+            if db_session is None:
                 raise ModelConversionError("Cannot convert field %s, need DB session." % prop.key)
 
             foreign_model = prop.mapper.class_
