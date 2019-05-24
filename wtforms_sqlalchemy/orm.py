@@ -4,8 +4,10 @@ Tools for generating forms based on SQLAlchemy models.
 from __future__ import unicode_literals
 
 import inspect
+from collections import OrderedDict
 
-from wtforms import validators, fields as wtforms_fields
+from wtforms import fields as wtforms_fields
+from wtforms import validators
 from wtforms.form import Form
 from .fields import QuerySelectField, QuerySelectMultipleField
 
@@ -239,8 +241,9 @@ def model_fields(model, db_session=None, only=None, exclude=None,
     mapper = model._sa_class_manager.mapper
     converter = converter or ModelConverter()
     field_args = field_args or {}
-    properties = []
 
+    order = []
+    properties = {}
     for prop in mapper.iterate_properties:
         if getattr(prop, 'columns', None):
             if exclude_fk and prop.columns[0].foreign_keys:
@@ -248,16 +251,17 @@ def model_fields(model, db_session=None, only=None, exclude=None,
             elif exclude_pk and prop.columns[0].primary_key:
                 continue
 
-        properties.append((prop.key, prop))
+        order.append(prop.key)
+        properties[prop.key] = prop
 
-    #((p.key, p) for p in mapper.iterate_properties)
     if only:
-        properties = (x for x in properties if x[0] in only)
+        order = list(only)
+        properties = {key: properties[key] for key in only}
     elif exclude:
-        properties = (x for x in properties if x[0] not in exclude)
+        properties = {key: prop for key, prop in properties.items() if key not in exclude}
 
     field_dict = {}
-    for name, prop in properties:
+    for name, prop in properties.items():
         field = converter.convert(
             model, mapper, prop,
             field_args.get(name), db_session
@@ -265,7 +269,7 @@ def model_fields(model, db_session=None, only=None, exclude=None,
         if field is not None:
             field_dict[name] = field
 
-    return field_dict
+    return OrderedDict((key, field_dict[key]) for key in order if key in field_dict)
 
 
 def model_form(model, db_session=None, base_class=Form, only=None,
