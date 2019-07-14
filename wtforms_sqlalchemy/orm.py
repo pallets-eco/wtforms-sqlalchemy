@@ -67,7 +67,7 @@ class ModelConverterBase(object):
             if col_type.__name__ in self.converters:
                 return self.converters[col_type.__name__]
 
-        raise ModelConversionError('Could not find field converter for %s (%r).' % (prop.key, types[0]))
+        raise ModelConversionError('Could not find field converter for column %s (%r).' % (column.name, types[0]))
 
     def convert(self, model, mapper, prop, field_args, db_session=None):
         if not hasattr(prop, 'columns') and not hasattr(prop, 'direction'):
@@ -195,7 +195,7 @@ class ModelConverter(ModelConverterBase):
         field_args.setdefault('places', None)
         return wtforms_fields.DecimalField(**field_args)
 
-    @converts('dialects.mysql.base.YEAR')
+    @converts('dialects.mysql.types.YEAR')
     def conv_MSYear(self, field_args, **extra):
         field_args['validators'].append(validators.NumberRange(min=1901, max=2155))
         return wtforms_fields.StringField(**field_args)
