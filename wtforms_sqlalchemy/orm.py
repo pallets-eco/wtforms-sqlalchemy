@@ -56,7 +56,7 @@ class ModelConverterBase(object):
             type_string = '%s.%s' % (col_type.__module__, col_type.__name__)
 
             # remove the 'sqlalchemy.' prefix for sqlalchemy <0.7 compatibility
-            if type_string.startswith('sqlalchemy'):
+            if type_string.startswith('sqlalchemy.'):
                 type_string = type_string[11:]
 
             if type_string in self.converters:
