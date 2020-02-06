@@ -256,7 +256,7 @@ def model_fields(model, db_session=None, only=None, exclude=None,
 
     if only:
         order = list(only)
-        properties = {key: properties[key] for key in only}
+        properties = {key: properties[key] for key in only if key in properties}
     elif exclude:
         properties = {key: prop for key, prop in properties.items() if key not in exclude}
 
