@@ -22,6 +22,8 @@ Unreleased
 -   Fix a compatibility issue with SQLAlchemy 2.1 that caused
     ``QuerySelectField`` to fail with a ``ValueError``. (`#9`_, `#10`_,
     `#11`_)
+-   QuerySelectField.query allowing no results instead of falling back to
+    ``query_factory``. (`#15`_)
 
 .. _#2: https://github.com/wtforms/wtforms-sqlalchemy/pull/2
 .. _#3: https://github.com/wtforms/wtforms-sqlalchemy/pull/3
@@ -31,6 +33,7 @@ Unreleased
 .. _#9: https://github.com/wtforms/wtforms-sqlalchemy/issues/9
 .. _#10: https://github.com/wtforms/wtforms-sqlalchemy/pull/10
 .. _#11: https://github.com/wtforms/wtforms-sqlalchemy/pull/11
+.. _#15: https://github.com/wtforms/wtforms-sqlalchemy/pull/15
 
 
 Version 0.1
