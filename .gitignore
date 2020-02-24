@@ -9,6 +9,7 @@ MANIFEST
 WTForms_SQLAlchemy.egg-info
 .coverage
 .coveralls.yml
+examples/flask/sample_db.sqlite
 
 # Directories
 build/

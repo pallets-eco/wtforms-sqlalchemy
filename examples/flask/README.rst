@@ -14,8 +14,10 @@ To run this example:
 
 3. Install requirements::
 
-    pip install -r 'examples/flask/requirements.txt'
+    pip install flask flask_sqlalchemy -e .
 
 4. Run the application::
 
     python examples/flask/basic.py
+
+5. Open your browser to http://127.0.0.1:5000/
