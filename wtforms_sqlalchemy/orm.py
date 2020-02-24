@@ -120,7 +120,7 @@ class ModelConverterBase(object):
             converter = self.get_converter(column)
         else:
             # We have a property with a direction.
-            if not db_session:
+            if db_session is None:
                 raise ModelConversionError("Cannot convert field %s, need DB session." % prop.key)
 
             foreign_model = prop.mapper.class_
@@ -195,7 +195,7 @@ class ModelConverter(ModelConverterBase):
         field_args.setdefault('places', None)
         return wtforms_fields.DecimalField(**field_args)
 
-    @converts('dialects.mysql.types.YEAR')
+    @converts('dialects.mysql.types.YEAR', 'dialects.mysql.base.YEAR')
     def conv_MSYear(self, field_args, **extra):
         field_args['validators'].append(validators.NumberRange(min=1901, max=2155))
         return wtforms_fields.StringField(**field_args)
