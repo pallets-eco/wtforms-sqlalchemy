@@ -24,6 +24,7 @@ Unreleased
     `#11`_)
 -   QuerySelectField.query allowing no results instead of falling back to
     ``query_factory``. (`#15`_)
+-   Explicitly check if db_session is None in converter. (`#17`_)
 
 .. _#2: https://github.com/wtforms/wtforms-sqlalchemy/pull/2
 .. _#3: https://github.com/wtforms/wtforms-sqlalchemy/pull/3
@@ -34,6 +35,7 @@ Unreleased
 .. _#10: https://github.com/wtforms/wtforms-sqlalchemy/pull/10
 .. _#11: https://github.com/wtforms/wtforms-sqlalchemy/pull/11
 .. _#15: https://github.com/wtforms/wtforms-sqlalchemy/pull/15
+.. _#17: https://github.com/wtforms/wtforms-sqlalchemy/pull/17
 
 
 Version 0.1
