@@ -27,6 +27,7 @@ Unreleased
 -   Explicitly check if db_session is None in converter. (`#17`_)
 -   Check for ``sqlalchemy.`` to avoid matching packages with names starting
     with ``sqlalchemy`` (6237a0f_)
+-   Use SQLAlchemy's Column.doc for WTForm's Field.description
 
 .. _#2: https://github.com/wtforms/wtforms-sqlalchemy/pull/2
 .. _#3: https://github.com/wtforms/wtforms-sqlalchemy/pull/3
