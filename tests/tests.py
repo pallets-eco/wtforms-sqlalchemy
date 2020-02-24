@@ -261,8 +261,8 @@ class ModelFormTest(TestCase):
         assert contains_validator(student_form.dob, Optional)
         assert contains_validator(student_form.full_name, Required)
         assert not contains_validator(course_form.has_prereqs, Optional)
-        assert contains_validator(course_form.has_prereqs, Required)
-        assert contains_validator(course_form.boolean_nullable, Optional)
+        assert not contains_validator(course_form.has_prereqs, Required)
+        assert not contains_validator(course_form.boolean_nullable, Optional)
         assert not contains_validator(course_form.boolean_nullable, Required)
 
     def test_field_args(self):
