@@ -359,7 +359,7 @@ class ModelFormColumnDefaultTest(TestCase):
         self.assertEqual(student_form._fields['score'].default, 10)
 
 
-class ModelFormTest(TestCase):
+class ModelFormTest2(TestCase):
     def setUp(self):
         Model = declarative_base()
 
