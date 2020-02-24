@@ -238,7 +238,6 @@ class ModelConverter(ModelConverterBase):
 
     @converts('MANYTOMANY', 'ONETOMANY')
     def conv_ManyToMany(self, column, field_args, **extra):
-        self._nullable_required(column=column, field_args=field_args, **extra)
         return QuerySelectMultipleField(**field_args)
 
 
