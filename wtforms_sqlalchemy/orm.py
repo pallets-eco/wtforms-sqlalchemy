@@ -81,6 +81,7 @@ class ModelConverterBase(object):
             'validators': [],
             'filters': [],
             'default': None,
+            'description': prop.doc,
         }
 
         if field_args:
