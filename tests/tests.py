@@ -222,6 +222,7 @@ class ModelFormTest(TestCase):
             description = Column(sqla_types.Text, nullable=False)
             level = Column(sqla_types.Enum('Primary', 'Secondary'))
             has_prereqs = Column(sqla_types.Boolean, nullable=False)
+            boolean_nullable = Column(sqla_types.Boolean, nullable=True)
             started = Column(sqla_types.DateTime, nullable=False)
             grade = Column(AnotherInteger, nullable=False)
 
@@ -255,9 +256,14 @@ class ModelFormTest(TestCase):
         self.sess = Session()
 
     def test_auto_validators(self):
+        course_form = model_form(self.Course, self.sess)()
         student_form = model_form(self.Student, self.sess)()
         assert contains_validator(student_form.dob, Optional)
         assert contains_validator(student_form.full_name, Required)
+        assert not contains_validator(course_form.has_prereqs, Optional)
+        assert contains_validator(course_form.has_prereqs, Required)
+        assert contains_validator(course_form.boolean_nullable, Optional)
+        assert not contains_validator(course_form.boolean_nullable, Required)
 
     def test_field_args(self):
         shared = {'full_name': {'validators': [Regexp('test')]}}
@@ -302,7 +308,7 @@ class ModelFormTest(TestCase):
         self.assertRaises(ModelConversionError, model_form, self.Course)
         form_class = model_form(self.Course, exclude=['students'])
         form = form_class()
-        self.assertEqual(len(list(form)), 7)
+        self.assertEqual(len(list(form)), 8)
 
     def test_only(self):
         desired_fields = ['id', 'cost', 'description']
@@ -317,7 +323,7 @@ class ModelFormTest(TestCase):
         self.assertRaises(ModelConversionError, model_form, self.Course, self.sess, converter=converter)
         # If we exclude 'grade' everything should continue working
         F = model_form(self.Course, self.sess, exclude=['grade'], converter=converter)
-        self.assertEqual(len(list(F())), 7)
+        self.assertEqual(len(list(F())), 8)
 
 
 class ModelFormColumnDefaultTest(TestCase):
