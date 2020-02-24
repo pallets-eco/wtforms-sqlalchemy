@@ -242,25 +242,22 @@ def model_fields(model, db_session=None, only=None, exclude=None,
     converter = converter or ModelConverter()
     field_args = field_args or {}
 
-    order = []
-    properties = {}
+    properties = OrderedDict()
     for prop in mapper.iterate_properties:
         if getattr(prop, 'columns', None):
             if exclude_fk and prop.columns[0].foreign_keys:
                 continue
             elif exclude_pk and prop.columns[0].primary_key:
                 continue
-
-        order.append(prop.key)
         properties[prop.key] = prop
 
     if only:
-        order = list(only)
-        properties = {key: properties[key] for key in only if key in properties}
+        keys = set(properties.keys())
+        properties = {key: properties[key] for key in only if key in keys}
     elif exclude:
         properties = {key: prop for key, prop in properties.items() if key not in exclude}
 
-    field_dict = {}
+    field_dict = OrderedDict()
     for name, prop in properties.items():
         field = converter.convert(
             model, mapper, prop,
@@ -269,7 +266,7 @@ def model_fields(model, db_session=None, only=None, exclude=None,
         if field is not None:
             field_dict[name] = field
 
-    return OrderedDict((key, field_dict[key]) for key in order if key in field_dict)
+    return field_dict
 
 
 def model_form(model, db_session=None, base_class=Form, only=None,
