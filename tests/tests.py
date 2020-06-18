@@ -1,29 +1,47 @@
-from __future__ import unicode_literals, absolute_import
-
-from sqlalchemy import create_engine, ForeignKey, types as sqla_types
-from sqlalchemy.schema import MetaData, Table, Column, ColumnDefault
-from sqlalchemy.orm import sessionmaker, relationship, backref
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import INET, MACADDR, UUID
-from sqlalchemy.dialects.mysql import YEAR
-from sqlalchemy.dialects.mssql import BIT
-
 from unittest import TestCase
+from wtforms_sqlalchemy.fields import QuerySelectField
+from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+from wtforms_sqlalchemy.orm import model_form
+from wtforms_sqlalchemy.orm import ModelConversionError
+from wtforms_sqlalchemy.orm import ModelConverter
 
-from wtforms.compat import text_type, iteritems
-from wtforms_sqlalchemy.fields import QuerySelectField, QuerySelectMultipleField
-from wtforms import Form, fields
-from wtforms_sqlalchemy.orm import model_form, ModelConversionError, ModelConverter
-from wtforms.validators import Optional, Required, Regexp
-from .common import DummyPostData, contains_validator
+from sqlalchemy import create_engine
+from sqlalchemy import ForeignKey
+from sqlalchemy import types as sqla_types
+from sqlalchemy.dialects.mssql import BIT
+from sqlalchemy.dialects.mysql import YEAR
+from sqlalchemy.dialects.postgresql import INET
+from sqlalchemy.dialects.postgresql import MACADDR
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import backref
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.schema import Column
+from sqlalchemy.schema import ColumnDefault
+from sqlalchemy.schema import MetaData
+from sqlalchemy.schema import Table
+from wtforms import fields
+from wtforms import Form
+from wtforms.compat import iteritems
+from wtforms.compat import text_type
+from wtforms.validators import Optional
+from wtforms.validators import Regexp
+from wtforms.validators import Required
+
+from .common import contains_validator
+from .common import DummyPostData
 
 
-class LazySelect(object):
+class LazySelect:
     def __call__(self, field, **kwargs):
-        return list((val, text_type(label), selected) for val, label, selected in field.iter_choices())
+        return list(
+            (val, text_type(label), selected)
+            for val, label, selected in field.iter_choices()
+        )
 
 
-class Base(object):
+class Base:
     def __init__(self, **kwargs):
         for k, v in iteritems(kwargs):
             setattr(self, k, v)
@@ -38,22 +56,25 @@ class TestBase(TestCase):
         metadata = MetaData()
 
         test_table = Table(
-            'test', metadata,
-            Column('id', sqla_types.Integer, primary_key=True, nullable=False),
-            Column('name', sqla_types.String, nullable=False),
+            "test",
+            metadata,
+            Column("id", sqla_types.Integer, primary_key=True, nullable=False),
+            Column("name", sqla_types.String, nullable=False),
         )
 
         pk_test_table = Table(
-            'pk_test', metadata,
-            Column('foobar', sqla_types.String, primary_key=True, nullable=False),
-            Column('baz', sqla_types.String, nullable=False),
+            "pk_test",
+            metadata,
+            Column("foobar", sqla_types.String, primary_key=True, nullable=False),
+            Column("baz", sqla_types.String, nullable=False),
         )
 
-        Test = type(str('Test'), (Base, ), {})
-        PKTest = type(str('PKTest'), (Base, ), {
-            '__unicode__': lambda x: x.baz,
-            '__str__': lambda x: x.baz,
-        })
+        Test = type("Test", (Base,), {})
+        PKTest = type(
+            "PKTest",
+            (Base,),
+            {"__unicode__": lambda x: x.baz, "__str__": lambda x: x.baz},
+        )
 
         mapper(Test, test_table, order_by=[test_table.c.name])
         mapper(PKTest, pk_test_table, order_by=[pk_test_table.c.baz])
@@ -63,9 +84,9 @@ class TestBase(TestCase):
         metadata.create_all(bind=engine)
 
     def _fill(self, sess):
-        for i, n in [(1, 'apple'), (2, 'banana')]:
+        for i, n in [(1, "apple"), (2, "banana")]:
             s = self.Test(id=i, name=n)
-            p = self.PKTest(foobar='hello%s' % (i, ), baz=n)
+            p = self.PKTest(foobar=f"hello{i}", baz=n)
             sess.add(s)
             sess.add(p)
         sess.flush()
@@ -74,9 +95,10 @@ class TestBase(TestCase):
 
 class QuerySelectFieldTest(TestBase):
     def setUp(self):
-        engine = create_engine('sqlite:///:memory:', echo=False)
+        engine = create_engine("sqlite:///:memory:", echo=False)
         self.Session = sessionmaker(bind=engine)
         from sqlalchemy.orm import mapper
+
         self._do_tables(mapper, engine)
 
     def test_without_factory(self):
@@ -84,72 +106,95 @@ class QuerySelectFieldTest(TestBase):
         self._fill(sess)
 
         class F(Form):
-            a = QuerySelectField(get_label='name', widget=LazySelect(), get_pk=lambda x: x.id)
-        form = F(DummyPostData(a=['1']))
+            a = QuerySelectField(
+                get_label="name", widget=LazySelect(), get_pk=lambda x: x.id
+            )
+
+        form = F(DummyPostData(a=["1"]))
         form.a.query = sess.query(self.Test)
         self.assertTrue(form.a.data is not None)
         self.assertEqual(form.a.data.id, 1)
-        self.assertEqual(form.a(), [('1', 'apple', True), ('2', 'banana', False)])
+        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
         self.assertTrue(form.validate())
 
-        form = F(a=sess.query(self.Test).filter_by(name='banana').first())
-        form.a.query = sess.query(self.Test).filter(self.Test.name != 'banana')
+        form = F(a=sess.query(self.Test).filter_by(name="banana").first())
+        form.a.query = sess.query(self.Test).filter(self.Test.name != "banana")
         assert not form.validate()
-        self.assertEqual(form.a.errors, ['Not a valid choice'])
+        self.assertEqual(form.a.errors, ["Not a valid choice"])
 
         # Test query with no results
         form = F()
         form.a.query = (
-            sess.query(self.Test)
-            .filter(self.Test.id == 1, self.Test.id != 1)
-            .all()
+            sess.query(self.Test).filter(self.Test.id == 1, self.Test.id != 1).all()
         )
         self.assertEqual(form.a(), [])
-
 
     def test_with_query_factory(self):
         sess = self.Session()
         self._fill(sess)
 
         class F(Form):
-            a = QuerySelectField(get_label=(lambda model: model.name), query_factory=lambda: sess.query(self.Test), widget=LazySelect())
-            b = QuerySelectField(allow_blank=True, query_factory=lambda: sess.query(self.PKTest), widget=LazySelect())
+            a = QuerySelectField(
+                get_label=(lambda model: model.name),
+                query_factory=lambda: sess.query(self.Test),
+                widget=LazySelect(),
+            )
+            b = QuerySelectField(
+                allow_blank=True,
+                query_factory=lambda: sess.query(self.PKTest),
+                widget=LazySelect(),
+            )
 
         form = F()
         self.assertEqual(form.a.data, None)
-        self.assertEqual(form.a(), [('1', 'apple', False), ('2', 'banana', False)])
+        self.assertEqual(form.a(), [("1", "apple", False), ("2", "banana", False)])
         self.assertEqual(form.b.data, None)
-        self.assertEqual(form.b(), [('__None', '', True), ('hello1', 'apple', False), ('hello2', 'banana', False)])
+        self.assertEqual(
+            form.b(),
+            [
+                ("__None", "", True),
+                ("hello1", "apple", False),
+                ("hello2", "banana", False),
+            ],
+        )
         self.assertFalse(form.validate())
 
-        form = F(DummyPostData(a=['1'], b=['hello2']))
+        form = F(DummyPostData(a=["1"], b=["hello2"]))
         self.assertEqual(form.a.data.id, 1)
-        self.assertEqual(form.a(), [('1', 'apple', True), ('2', 'banana', False)])
-        self.assertEqual(form.b.data.baz, 'banana')
-        self.assertEqual(form.b(), [('__None', '', False), ('hello1', 'apple', False), ('hello2', 'banana', True)])
+        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
+        self.assertEqual(form.b.data.baz, "banana")
+        self.assertEqual(
+            form.b(),
+            [
+                ("__None", "", False),
+                ("hello1", "apple", False),
+                ("hello2", "banana", True),
+            ],
+        )
         self.assertTrue(form.validate())
 
         # Make sure the query is cached
-        sess.add(self.Test(id=3, name='meh'))
+        sess.add(self.Test(id=3, name="meh"))
         sess.flush()
         sess.commit()
-        self.assertEqual(form.a(), [('1', 'apple', True), ('2', 'banana', False)])
+        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
         form.a._object_list = None
-        self.assertEqual(form.a(), [('1', 'apple', True), ('2', 'banana', False), ('3', 'meh', False)])
+        self.assertEqual(
+            form.a(),
+            [("1", "apple", True), ("2", "banana", False), ("3", "meh", False)],
+        )
 
         # Test bad data
-        form = F(DummyPostData(b=['__None'], a=['fail']))
+        form = F(DummyPostData(b=["__None"], a=["fail"]))
         assert not form.validate()
-        self.assertEqual(form.a.errors, ['Not a valid choice'])
+        self.assertEqual(form.a.errors, ["Not a valid choice"])
         self.assertEqual(form.b.errors, [])
         self.assertEqual(form.b.data, None)
 
         # Test query with no results
         form = F()
         form.a.query = (
-            sess.query(self.Test)
-            .filter(self.Test.id == 1, self.Test.id != 1)
-            .all()
+            sess.query(self.Test).filter(self.Test.id == 1, self.Test.id != 1).all()
         )
         self.assertEqual(form.a(), [])
 
@@ -157,34 +202,35 @@ class QuerySelectFieldTest(TestBase):
 class QuerySelectMultipleFieldTest(TestBase):
     def setUp(self):
         from sqlalchemy.orm import mapper
-        engine = create_engine('sqlite:///:memory:', echo=False)
+
+        engine = create_engine("sqlite:///:memory:", echo=False)
         Session = sessionmaker(bind=engine)
         self._do_tables(mapper, engine)
         self.sess = Session()
         self._fill(self.sess)
 
     class F(Form):
-        a = QuerySelectMultipleField(get_label='name', widget=LazySelect())
+        a = QuerySelectMultipleField(get_label="name", widget=LazySelect())
 
     def test_unpopulated_default(self):
         form = self.F()
         self.assertEqual([], form.a.data)
 
     def test_single_value_without_factory(self):
-        form = self.F(DummyPostData(a=['1']))
+        form = self.F(DummyPostData(a=["1"]))
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([1], [v.id for v in form.a.data])
-        self.assertEqual(form.a(), [('1', 'apple', True), ('2', 'banana', False)])
+        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
         self.assertTrue(form.validate())
 
     def test_multiple_values_without_query_factory(self):
-        form = self.F(DummyPostData(a=['1', '2']))
+        form = self.F(DummyPostData(a=["1", "2"]))
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([1, 2], [v.id for v in form.a.data])
-        self.assertEqual(form.a(), [('1', 'apple', True), ('2', 'banana', True)])
+        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", True)])
         self.assertTrue(form.validate())
 
-        form = self.F(DummyPostData(a=['1', '3']))
+        form = self.F(DummyPostData(a=["1", "3"]))
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([x.id for x in form.a.data], [1])
         self.assertFalse(form.validate())
@@ -194,12 +240,15 @@ class QuerySelectMultipleFieldTest(TestBase):
 
         class F(Form):
             a = QuerySelectMultipleField(
-                get_label='name', default=[first_test],
-                widget=LazySelect(), query_factory=lambda: self.sess.query(self.Test)
+                get_label="name",
+                default=[first_test],
+                widget=LazySelect(),
+                query_factory=lambda: self.sess.query(self.Test),
             )
+
         form = F()
         self.assertEqual([v.id for v in form.a.data], [2])
-        self.assertEqual(form.a(), [('1', 'apple', False), ('2', 'banana', True)])
+        self.assertEqual(form.a(), [("1", "apple", False), ("2", "banana", True)])
         self.assertTrue(form.validate())
 
 
@@ -208,9 +257,10 @@ class ModelFormTest(TestCase):
         Model = declarative_base()
 
         student_course = Table(
-            'student_course', Model.metadata,
-            Column('student_id', sqla_types.Integer, ForeignKey('student.id')),
-            Column('course_id', sqla_types.Integer, ForeignKey('course.id'))
+            "student_course",
+            Model.metadata,
+            Column("student_id", sqla_types.Integer, ForeignKey("student.id")),
+            Column("course_id", sqla_types.Integer, ForeignKey("course.id")),
         )
 
         class Course(Model):
@@ -220,7 +270,7 @@ class ModelFormTest(TestCase):
             # These are for better model form testing
             cost = Column(sqla_types.Numeric(5, 2), nullable=False)
             description = Column(sqla_types.Text, nullable=False)
-            level = Column(sqla_types.Enum('Primary', 'Secondary'))
+            level = Column(sqla_types.Enum("Primary", "Secondary"))
             has_prereqs = Column(sqla_types.Boolean, nullable=False)
             boolean_nullable = Column(sqla_types.Boolean, nullable=True)
             started = Column(sqla_types.DateTime, nullable=False)
@@ -236,20 +286,22 @@ class ModelFormTest(TestCase):
             id = Column(sqla_types.Integer, primary_key=True)
             full_name = Column(sqla_types.String(255), nullable=False, unique=True)
             dob = Column(sqla_types.Date(), nullable=True)
-            current_school_id = Column(sqla_types.Integer, ForeignKey(School.id), nullable=False)
+            current_school_id = Column(
+                sqla_types.Integer, ForeignKey(School.id), nullable=False
+            )
 
-            current_school = relationship(School, backref=backref('students'))
+            current_school = relationship(School, backref=backref("students"))
             courses = relationship(
                 "Course",
                 secondary=student_course,
-                backref=backref("students", lazy='dynamic')
+                backref=backref("students", lazy="dynamic"),
             )
 
         self.School = School
         self.Student = Student
         self.Course = Course
 
-        engine = create_engine('sqlite:///:memory:', echo=False)
+        engine = create_engine("sqlite:///:memory:", echo=False)
         Session = sessionmaker(bind=engine)
         self.metadata = Model.metadata
         self.metadata.create_all(bind=engine)
@@ -266,30 +318,30 @@ class ModelFormTest(TestCase):
         assert not contains_validator(course_form.boolean_nullable, Required)
 
     def test_field_args(self):
-        shared = {'full_name': {'validators': [Regexp('test')]}}
+        shared = {"full_name": {"validators": [Regexp("test")]}}
         student_form = model_form(self.Student, self.sess, field_args=shared)()
         assert contains_validator(student_form.full_name, Regexp)
 
         # original shared field_args should not be modified
-        assert len(shared['full_name']['validators']) == 1
+        assert len(shared["full_name"]["validators"]) == 1
 
     def test_include_pk(self):
         form_class = model_form(self.Student, self.sess, exclude_pk=False)
         student_form = form_class()
-        assert ('id' in student_form._fields)
+        assert "id" in student_form._fields
 
     def test_exclude_pk(self):
         form_class = model_form(self.Student, self.sess, exclude_pk=True)
         student_form = form_class()
-        assert ('id' not in student_form._fields)
+        assert "id" not in student_form._fields
 
     def test_exclude_fk(self):
         student_form = model_form(self.Student, self.sess)()
-        assert ('current_school_id' not in student_form._fields)
+        assert "current_school_id" not in student_form._fields
 
     def test_include_fk(self):
         student_form = model_form(self.Student, self.sess, exclude_fk=False)()
-        assert ('current_school_id' in student_form._fields)
+        assert "current_school_id" in student_form._fields
 
     def test_convert_many_to_one(self):
         student_form = model_form(self.Student, self.sess)()
@@ -306,12 +358,12 @@ class ModelFormTest(TestCase):
     def test_convert_basic(self):
         self.assertRaises(TypeError, model_form, None)
         self.assertRaises(ModelConversionError, model_form, self.Course)
-        form_class = model_form(self.Course, exclude=['students'])
+        form_class = model_form(self.Course, exclude=["students"])
         form = form_class()
         self.assertEqual(len(list(form)), 8)
 
     def test_only(self):
-        desired_fields = ['id', 'cost', 'description']
+        desired_fields = ["id", "cost", "description"]
         form = model_form(self.Course, only=desired_fields)()
         self.assertEqual(len(list(form)), 2)
         form = model_form(self.Course, only=desired_fields, exclude_pk=False)()
@@ -320,9 +372,15 @@ class ModelFormTest(TestCase):
     def test_no_mro(self):
         converter = ModelConverter(use_mro=False)
         # Without MRO, will not be able to convert 'grade'
-        self.assertRaises(ModelConversionError, model_form, self.Course, self.sess, converter=converter)
+        self.assertRaises(
+            ModelConversionError,
+            model_form,
+            self.Course,
+            self.sess,
+            converter=converter,
+        )
         # If we exclude 'grade' everything should continue working
-        F = model_form(self.Course, self.sess, exclude=['grade'], converter=converter)
+        F = model_form(self.Course, self.sess, exclude=["grade"], converter=converter)
         self.assertEqual(len(list(F())), 8)
 
 
@@ -349,7 +407,7 @@ class ModelFormColumnDefaultTest(TestCase):
         self.StudentDefaultScoreCallable = StudentDefaultScoreCallable
         self.StudentDefaultScoreScalar = StudentDefaultScoreScalar
 
-        engine = create_engine('sqlite:///:memory:', echo=False)
+        engine = create_engine("sqlite:///:memory:", echo=False)
         Session = sessionmaker(bind=engine)
         self.metadata = Model.metadata
         self.metadata.create_all(bind=engine)
@@ -357,12 +415,12 @@ class ModelFormColumnDefaultTest(TestCase):
 
     def test_column_default_callable(self):
         student_form = model_form(self.StudentDefaultScoreCallable, self.sess)()
-        self.assertEqual(student_form._fields['score'].default, 5)
+        self.assertEqual(student_form._fields["score"].default, 5)
 
     def test_column_default_scalar(self):
         student_form = model_form(self.StudentDefaultScoreScalar, self.sess)()
-        assert not isinstance(student_form._fields['score'].default, ColumnDefault)
-        self.assertEqual(student_form._fields['score'].default, 10)
+        assert not isinstance(student_form._fields["score"].default, ColumnDefault)
+        self.assertEqual(student_form._fields["score"].default, 10)
 
 
 class ModelFormTest2(TestCase):
@@ -384,7 +442,7 @@ class ModelFormTest2(TestCase):
             binary = Column(sqla_types.Binary)
             largebinary = Column(sqla_types.LargeBinary)
             unicodetext = Column(sqla_types.UnicodeText)
-            enum = Column(sqla_types.Enum('Primary', 'Secondary'))
+            enum = Column(sqla_types.Enum("Primary", "Secondary"))
             boolean = Column(sqla_types.Boolean)
             datetime = Column(sqla_types.DateTime)
             timestamp = Column(sqla_types.TIMESTAMP)

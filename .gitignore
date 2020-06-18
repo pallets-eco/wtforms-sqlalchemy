@@ -18,6 +18,7 @@ docs/_build
 docs/html
 .eggs
 env/
+.tox
 
 # Editors
 .idea

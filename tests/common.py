@@ -1,8 +1,10 @@
 from contextlib import contextmanager
-from wtforms.validators import ValidationError, StopValidation
+
+from wtforms.validators import StopValidation
+from wtforms.validators import ValidationError
 
 
-class DummyTranslations(object):
+class DummyTranslations:
     def gettext(self, string):
         return string
 
@@ -13,7 +15,7 @@ class DummyTranslations(object):
         return plural
 
 
-class DummyField(object):
+class DummyField:
     _translations = DummyTranslations()
 
     def __init__(self, data, errors=(), raw_data=None):
@@ -60,10 +62,14 @@ class DummyPostData(dict):
 @contextmanager
 def assert_raises_text(e_type, text):
     import re
+
     try:
         yield
     except e_type as e:
         if not re.match(text, e.args[0]):
-            raise AssertionError('Exception raised: %r but text %r did not match pattern %r' % (e, e.args[0], text))
+            raise AssertionError(
+                "Exception raised: %r but text %r did not match pattern %r"
+                % (e, e.args[0], text)
+            )
     else:
-        raise AssertionError('Expected Exception %r, did not get it' % (e_type, ))
+        raise AssertionError(f"Expected Exception {e_type!r}, did not get it")
