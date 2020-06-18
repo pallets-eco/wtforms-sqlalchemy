@@ -1,5 +1,6 @@
 import os
 import sys
+
 from pallets_sphinx_themes import get_version
 from pallets_sphinx_themes import ProjectLink
 
@@ -34,11 +35,15 @@ pygments_style = "sphinx"
 html_theme = "werkzeug"
 html_context = {
     "project_links": [
-        ProjectLink("WTForms documentation", "https://wtforms.readthedocs.io/en/stable/"),
+        ProjectLink(
+            "WTForms documentation", "https://wtforms.readthedocs.io/en/stable/"
+        ),
         ProjectLink("PyPI Releases", "https://pypi.org/project/WTForms-SQLAlchemy/"),
         ProjectLink("Source Code", "https://github.com/wtforms/wtforms-sqlalchemy/"),
         ProjectLink("Discord Chat", "https://discord.gg/F65P7Z9",),
-        ProjectLink("Issue Tracker", "https://github.com/wtforms/wtforms-sqlalchemy/issues/"),
+        ProjectLink(
+            "Issue Tracker", "https://github.com/wtforms/wtforms-sqlalchemy/issues/"
+        ),
     ]
 }
 html_sidebars = {
