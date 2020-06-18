@@ -48,7 +48,7 @@ class QuerySelectField(SelectFieldBase):
     a string, this is the name of an attribute on the model object to use as
     the label text. If a one-argument callable, this callable will be passed
     model instance and expected to return the label text. Otherwise, the model
-    object's `__str__` or `__unicode__` will be used.
+    object's `__str__` will be used.
 
     If `allow_blank` is set to `True`, then a blank choice will be added to the
     top of the list. Selecting this choice will result in the `data` property

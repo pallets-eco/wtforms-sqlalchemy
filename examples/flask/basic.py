@@ -18,9 +18,6 @@ class Car(db.Model):
     make = db.Column(db.String(50))
     model = db.Column(db.String(50))
 
-    def __unicode__(self):
-        return self.name
-
 
 CarForm = model_form(Car)
 
