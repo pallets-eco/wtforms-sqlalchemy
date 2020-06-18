@@ -1,25 +1,27 @@
 """
 Useful form fields for use with SQLAlchemy ORM.
 """
-from __future__ import unicode_literals
-
 import operator
 
 from wtforms import widgets
-from wtforms.compat import text_type, string_types
+from wtforms.compat import string_types
+from wtforms.compat import text_type
 from wtforms.fields import SelectFieldBase
 from wtforms.validators import ValidationError
 
 try:
     from sqlalchemy.orm.util import identity_key
+
     has_identity_key = True
 except ImportError:
     has_identity_key = False
 
 
 __all__ = (
-    'QuerySelectField', 'QuerySelectMultipleField',
-    'QueryRadioField', 'QueryCheckboxField',
+    "QuerySelectField",
+    "QuerySelectMultipleField",
+    "QueryRadioField",
+    "QueryCheckboxField",
 )
 
 
@@ -53,17 +55,28 @@ class QuerySelectField(SelectFieldBase):
     being `None`. The label for this blank choice can be set by specifying the
     `blank_text` parameter.
     """
+
     widget = widgets.Select()
 
-    def __init__(self, label=None, validators=None, query_factory=None,
-                 get_pk=None, get_label=None, allow_blank=False,
-                 blank_text='', **kwargs):
-        super(QuerySelectField, self).__init__(label, validators, **kwargs)
+    def __init__(
+        self,
+        label=None,
+        validators=None,
+        query_factory=None,
+        get_pk=None,
+        get_label=None,
+        allow_blank=False,
+        blank_text="",
+        **kwargs
+    ):
+        super().__init__(label, validators, **kwargs)
         self.query_factory = query_factory
 
         if get_pk is None:
             if not has_identity_key:
-                raise Exception('The sqlalchemy identity_key function could not be imported.')
+                raise Exception(
+                    "The sqlalchemy identity_key function could not be imported."
+                )
             self.get_pk = get_pk_from_identity
         else:
             self.get_pk = get_pk
@@ -96,24 +109,21 @@ class QuerySelectField(SelectFieldBase):
 
     def _get_object_list(self):
         if self._object_list is None:
-            query = (
-                self.query if self.query is not None
-                else self.query_factory()
-            )
+            query = self.query if self.query is not None else self.query_factory()
             get_pk = self.get_pk
             self._object_list = list((text_type(get_pk(obj)), obj) for obj in query)
         return self._object_list
 
     def iter_choices(self):
         if self.allow_blank:
-            yield ('__None', self.blank_text, self.data is None)
+            yield ("__None", self.blank_text, self.data is None)
 
         for pk, obj in self._get_object_list():
             yield (pk, self.get_label(obj), obj == self.data)
 
     def process_formdata(self, valuelist):
         if valuelist:
-            if self.allow_blank and valuelist[0] == '__None':
+            if self.allow_blank and valuelist[0] == "__None":
                 self.data = None
             else:
                 self._data = None
@@ -122,13 +132,13 @@ class QuerySelectField(SelectFieldBase):
     def pre_validate(self, form):
         data = self.data
         if data is not None:
-            for pk, obj in self._get_object_list():
+            for _, obj in self._get_object_list():
                 if data == obj:
                     break
             else:
-                raise ValidationError(self.gettext('Not a valid choice'))
+                raise ValidationError(self.gettext("Not a valid choice"))
         elif self._formdata or not self.allow_blank:
-            raise ValidationError(self.gettext('Not a valid choice'))
+            raise ValidationError(self.gettext("Not a valid choice"))
 
 
 class QuerySelectMultipleField(QuerySelectField):
@@ -140,15 +150,19 @@ class QuerySelectMultipleField(QuerySelectField):
     If any of the items in the data list or submitted form data cannot be
     found in the query, this will result in a validation error.
     """
+
     widget = widgets.Select(multiple=True)
 
     def __init__(self, label=None, validators=None, default=None, **kwargs):
         if default is None:
             default = []
-        super(QuerySelectMultipleField, self).__init__(label, validators, default=default, **kwargs)
-        if kwargs.get('allow_blank', False):
+        super().__init__(label, validators, default=default, **kwargs)
+        if kwargs.get("allow_blank", False):
             import warnings
-            warnings.warn('allow_blank=True does not do anything for QuerySelectMultipleField.')
+
+            warnings.warn(
+                "allow_blank=True does not do anything for QuerySelectMultipleField."
+            )
         self._invalid_formdata = False
 
     def _get_data(self):
@@ -181,12 +195,12 @@ class QuerySelectMultipleField(QuerySelectField):
 
     def pre_validate(self, form):
         if self._invalid_formdata:
-            raise ValidationError(self.gettext('Not a valid choice'))
+            raise ValidationError(self.gettext("Not a valid choice"))
         elif self.data:
             obj_list = list(x[1] for x in self._get_object_list())
             for v in self.data:
                 if v not in obj_list:
-                    raise ValidationError(self.gettext('Not a valid choice'))
+                    raise ValidationError(self.gettext("Not a valid choice"))
 
 
 class QueryRadioField(QuerySelectField):
@@ -201,4 +215,4 @@ class QueryCheckboxField(QuerySelectMultipleField):
 
 def get_pk_from_identity(obj):
     key = identity_key(instance=obj)[1]
-    return ':'.join(text_type(x) for x in key)
+    return ":".join(text_type(x) for x in key)

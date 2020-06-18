@@ -28,6 +28,7 @@ Unreleased
 -   Check for ``sqlalchemy.`` to avoid matching packages with names starting
     with ``sqlalchemy`` (6237a0f_)
 -   Use SQLAlchemy's Column.doc for WTForm's Field.description (`#21`_)
+-   Style pre-commit (`#624`_)
 
 .. _#2: https://github.com/wtforms/wtforms-sqlalchemy/pull/2
 .. _#3: https://github.com/wtforms/wtforms-sqlalchemy/pull/3
@@ -41,6 +42,7 @@ Unreleased
 .. _#17: https://github.com/wtforms/wtforms-sqlalchemy/pull/17
 .. _6237a0f: https://github.com/wtforms/wtforms-sqlalchemy/commit/6237a0f9e53ec5f22048be7f129e29f7f1c58448
 .. _#21: https://github.com/wtforms/wtforms-sqlalchemy/pull/21
+.. _#624: https://github.com/wtforms/wtforms-sqlalchemy/pull/624
 
 Version 0.1
 -----------
