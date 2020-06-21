@@ -1,11 +1,15 @@
 Changes
 =======
 
+Version 0.x
+-----------
+
+Unreleased
 
 Version 0.2
 -----------
 
-Unreleased
+Released on June 21st, 2020
 
 -   Auto-generated ``DecimalField`` does not limit places for ``Float``
     columns. (`#2`_)
