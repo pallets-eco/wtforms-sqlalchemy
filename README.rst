@@ -3,6 +3,8 @@ WTForms-SQLAlchemy
 
 .. image:: https://travis-ci.org/wtforms/wtforms-sqlalchemy.svg?branch=master
     :target: https://travis-ci.org/wtforms/wtforms-sqlalchemy
+.. image:: https://readthedocs.org/projects/wtforms-sqlalchemy/badge/?version=latest&style=flat
+    :target: https://wtforms-sqlalchemy.readthedocs.io
 
 WTForms-SQLAlchemy is a fork of the ``wtforms.ext.sqlalchemy`` package from WTForms.
 The package has been renamed to ``wtforms_sqlalchemy`` but otherwise should
