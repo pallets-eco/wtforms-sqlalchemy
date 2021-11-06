@@ -6,6 +6,16 @@ Version 0.x
 
 Unreleased
 
+Version 0.3
+-----------
+
+Released on November 6th, 2021
+
+-  Wtforms 3 support. (`#35`_)
+-  SQLAlchemy 1.4 tests fixes. (`#34`_)
+-  Switched from Travis CI to Github Actions (`#33`_)
+-  Abandon deperecated validator. (`#32`_)
+
 Version 0.2
 -----------
 
@@ -49,6 +59,10 @@ Released on June 21st, 2020
 .. _#21: https://github.com/wtforms/wtforms-sqlalchemy/pull/21
 .. _#23: https://github.com/wtforms/wtforms-sqlalchemy/pull/23
 .. _#24: https://github.com/wtforms/wtforms-sqlalchemy/pull/24
+.. _#32: https://github.com/wtforms/wtforms-sqlalchemy/pull/32
+.. _#33: https://github.com/wtforms/wtforms-sqlalchemy/pull/33
+.. _#34: https://github.com/wtforms/wtforms-sqlalchemy/pull/34
+.. _#35: https://github.com/wtforms/wtforms-sqlalchemy/pull/35
 
 Version 0.1
 -----------
