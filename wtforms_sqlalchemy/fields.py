@@ -4,8 +4,6 @@ Useful form fields for use with SQLAlchemy ORM.
 import operator
 
 from wtforms import widgets
-from wtforms.compat import string_types
-from wtforms.compat import text_type
 from wtforms.fields import SelectFieldBase
 from wtforms.validators import ValidationError
 
@@ -83,7 +81,7 @@ class QuerySelectField(SelectFieldBase):
 
         if get_label is None:
             self.get_label = lambda x: x
-        elif isinstance(get_label, string_types):
+        elif isinstance(get_label, str):
             self.get_label = operator.attrgetter(get_label)
         else:
             self.get_label = get_label
@@ -111,7 +109,7 @@ class QuerySelectField(SelectFieldBase):
         if self._object_list is None:
             query = self.query if self.query is not None else self.query_factory()
             get_pk = self.get_pk
-            self._object_list = list((text_type(get_pk(obj)), obj) for obj in query)
+            self._object_list = list((str(get_pk(obj)), obj) for obj in query)
         return self._object_list
 
     def iter_choices(self):
@@ -215,4 +213,4 @@ class QueryCheckboxField(QuerySelectMultipleField):
 
 def get_pk_from_identity(obj):
     key = identity_key(instance=obj)[1]
-    return ":".join(text_type(x) for x in key)
+    return ":".join(str(x) for x in key)

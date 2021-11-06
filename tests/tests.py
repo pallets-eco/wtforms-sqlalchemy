@@ -23,8 +23,6 @@ from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Table
 from wtforms import fields
 from wtforms import Form
-from wtforms.compat import iteritems
-from wtforms.compat import text_type
 from wtforms.validators import InputRequired
 from wtforms.validators import Optional
 from wtforms.validators import Regexp
@@ -36,14 +34,13 @@ from .common import DummyPostData
 class LazySelect:
     def __call__(self, field, **kwargs):
         return list(
-            (val, text_type(label), selected)
-            for val, label, selected in field.iter_choices()
+            (val, str(label), selected) for val, label, selected in field.iter_choices()
         )
 
 
 class Base:
     def __init__(self, **kwargs):
-        for k, v in iteritems(kwargs):
+        for k, v in iter(kwargs.items()):
             setattr(self, k, v)
 
 
