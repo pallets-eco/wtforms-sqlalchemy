@@ -25,9 +25,9 @@ from wtforms import fields
 from wtforms import Form
 from wtforms.compat import iteritems
 from wtforms.compat import text_type
+from wtforms.validators import InputRequired
 from wtforms.validators import Optional
 from wtforms.validators import Regexp
-from wtforms.validators import InputRequired
 
 from .common import contains_validator
 from .common import DummyPostData
@@ -76,8 +76,8 @@ class TestBase(TestCase):
             {"__unicode__": lambda x: x.baz, "__str__": lambda x: x.baz},
         )
 
-        mapper(Test, test_table, order_by=[test_table.c.name])
-        mapper(PKTest, pk_test_table, order_by=[pk_test_table.c.baz])
+        mapper(Test, test_table)
+        mapper(PKTest, pk_test_table)
         self.Test = Test
         self.PKTest = PKTest
 
@@ -439,7 +439,6 @@ class ModelFormTest2(TestCase):
             numeric = Column(sqla_types.Numeric)
             float = Column(sqla_types.Float)
             text = Column(sqla_types.Text)
-            binary = Column(sqla_types.Binary)
             largebinary = Column(sqla_types.LargeBinary)
             unicodetext = Column(sqla_types.UnicodeText)
             enum = Column(sqla_types.Enum("Primary", "Secondary"))
@@ -474,7 +473,6 @@ class ModelFormTest2(TestCase):
         assert isinstance(form.float, fields.DecimalField)
 
         assert isinstance(form.text, fields.TextAreaField)
-        assert isinstance(form.binary, fields.TextAreaField)
         assert isinstance(form.largebinary, fields.TextAreaField)
         assert isinstance(form.unicodetext, fields.TextAreaField)
 
