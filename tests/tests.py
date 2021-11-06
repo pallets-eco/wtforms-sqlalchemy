@@ -27,7 +27,7 @@ from wtforms.compat import iteritems
 from wtforms.compat import text_type
 from wtforms.validators import Optional
 from wtforms.validators import Regexp
-from wtforms.validators import Required
+from wtforms.validators import InputRequired
 
 from .common import contains_validator
 from .common import DummyPostData
@@ -311,11 +311,11 @@ class ModelFormTest(TestCase):
         course_form = model_form(self.Course, self.sess)()
         student_form = model_form(self.Student, self.sess)()
         assert contains_validator(student_form.dob, Optional)
-        assert contains_validator(student_form.full_name, Required)
+        assert contains_validator(student_form.full_name, InputRequired)
         assert not contains_validator(course_form.has_prereqs, Optional)
-        assert contains_validator(course_form.has_prereqs, Required)
+        assert contains_validator(course_form.has_prereqs, InputRequired)
         assert contains_validator(course_form.boolean_nullable, Optional)
-        assert not contains_validator(course_form.boolean_nullable, Required)
+        assert not contains_validator(course_form.boolean_nullable, InputRequired)
 
     def test_field_args(self):
         shared = {"full_name": {"validators": [Regexp("test")]}}
