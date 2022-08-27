@@ -23,11 +23,9 @@ from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Table
 from wtforms import fields
 from wtforms import Form
-from wtforms.compat import iteritems
-from wtforms.compat import text_type
+from wtforms.validators import InputRequired
 from wtforms.validators import Optional
 from wtforms.validators import Regexp
-from wtforms.validators import Required
 
 from .common import contains_validator
 from .common import DummyPostData
@@ -36,14 +34,13 @@ from .common import DummyPostData
 class LazySelect:
     def __call__(self, field, **kwargs):
         return list(
-            (val, text_type(label), selected)
-            for val, label, selected in field.iter_choices()
+            (val, str(label), selected) for val, label, selected in field.iter_choices()
         )
 
 
 class Base:
     def __init__(self, **kwargs):
-        for k, v in iteritems(kwargs):
+        for k, v in iter(kwargs.items()):
             setattr(self, k, v)
 
 
@@ -76,8 +73,8 @@ class TestBase(TestCase):
             {"__unicode__": lambda x: x.baz, "__str__": lambda x: x.baz},
         )
 
-        mapper(Test, test_table, order_by=[test_table.c.name])
-        mapper(PKTest, pk_test_table, order_by=[pk_test_table.c.baz])
+        mapper(Test, test_table)
+        mapper(PKTest, pk_test_table)
         self.Test = Test
         self.PKTest = PKTest
 
@@ -311,11 +308,11 @@ class ModelFormTest(TestCase):
         course_form = model_form(self.Course, self.sess)()
         student_form = model_form(self.Student, self.sess)()
         assert contains_validator(student_form.dob, Optional)
-        assert contains_validator(student_form.full_name, Required)
+        assert contains_validator(student_form.full_name, InputRequired)
         assert not contains_validator(course_form.has_prereqs, Optional)
-        assert contains_validator(course_form.has_prereqs, Required)
+        assert contains_validator(course_form.has_prereqs, InputRequired)
         assert contains_validator(course_form.boolean_nullable, Optional)
-        assert not contains_validator(course_form.boolean_nullable, Required)
+        assert not contains_validator(course_form.boolean_nullable, InputRequired)
 
     def test_field_args(self):
         shared = {"full_name": {"validators": [Regexp("test")]}}
@@ -439,7 +436,6 @@ class ModelFormTest2(TestCase):
             numeric = Column(sqla_types.Numeric)
             float = Column(sqla_types.Float)
             text = Column(sqla_types.Text)
-            binary = Column(sqla_types.Binary)
             largebinary = Column(sqla_types.LargeBinary)
             unicodetext = Column(sqla_types.UnicodeText)
             enum = Column(sqla_types.Enum("Primary", "Secondary"))
@@ -474,7 +470,6 @@ class ModelFormTest2(TestCase):
         assert isinstance(form.float, fields.DecimalField)
 
         assert isinstance(form.text, fields.TextAreaField)
-        assert isinstance(form.binary, fields.TextAreaField)
         assert isinstance(form.largebinary, fields.TextAreaField)
         assert isinstance(form.unicodetext, fields.TextAreaField)
 

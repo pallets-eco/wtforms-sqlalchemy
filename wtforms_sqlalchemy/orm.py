@@ -126,7 +126,7 @@ class ModelConverterBase:
             if column.nullable:
                 kwargs["validators"].append(validators.Optional())
             else:
-                kwargs["validators"].append(validators.Required())
+                kwargs["validators"].append(validators.InputRequired())
 
             converter = self.get_converter(column)
         else:

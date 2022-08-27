@@ -14,7 +14,7 @@ to install::
 
     pip install WTForms-SQLAlchemy
 
-Python 3.6, 3.7 & 3.8 are supported.
+Python 3.6 to 3.10 are supported.
 
 An example using Flask is included in ``examples/flask``.
 
