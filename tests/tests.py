@@ -141,6 +141,13 @@ class QuerySelectFieldTest(TestBase):
                 query_factory=lambda: sess.query(self.PKTest),
                 widget=LazySelect(),
             )
+            c = QuerySelectField(
+                allow_blank=True,
+                blank_text="",
+                blank_value="",
+                query_factory=lambda: sess.query(self.PKTest),
+                widget=LazySelect(),
+            )
 
         form = F()
         self.assertEqual(form.a.data, None)
@@ -154,9 +161,14 @@ class QuerySelectFieldTest(TestBase):
                 ("hello2", "banana", False),
             ],
         )
+        self.assertEqual(form.c.data, None)
+        self.assertEqual(
+            form.c(),
+            [("", "", True), ("hello1", "apple", False), ("hello2", "banana", False)],
+        )
         self.assertFalse(form.validate())
 
-        form = F(DummyPostData(a=["1"], b=["hello2"]))
+        form = F(DummyPostData(a=["1"], b=["hello2"], c=[""]))
         self.assertEqual(form.a.data.id, 1)
         self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
         self.assertEqual(form.b.data.baz, "banana")
@@ -167,6 +179,11 @@ class QuerySelectFieldTest(TestBase):
                 ("hello1", "apple", False),
                 ("hello2", "banana", True),
             ],
+        )
+        self.assertEqual(form.c.data, None)
+        self.assertEqual(
+            form.c(),
+            [("", "", True), ("hello1", "apple", False), ("hello2", "banana", False)],
         )
         self.assertTrue(form.validate())
 
