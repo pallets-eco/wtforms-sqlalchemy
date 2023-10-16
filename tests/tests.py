@@ -1,9 +1,4 @@
 from unittest import TestCase
-from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms_sqlalchemy.fields import QuerySelectMultipleField
-from wtforms_sqlalchemy.orm import model_form
-from wtforms_sqlalchemy.orm import ModelConversionError
-from wtforms_sqlalchemy.orm import ModelConverter
 
 from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
@@ -26,6 +21,11 @@ from wtforms import Form
 from wtforms.validators import InputRequired
 from wtforms.validators import Optional
 from wtforms.validators import Regexp
+from wtforms_sqlalchemy.fields import QuerySelectField
+from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+from wtforms_sqlalchemy.orm import model_form
+from wtforms_sqlalchemy.orm import ModelConversionError
+from wtforms_sqlalchemy.orm import ModelConverter
 
 from .common import contains_validator
 from .common import DummyPostData
