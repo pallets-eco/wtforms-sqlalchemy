@@ -4,7 +4,8 @@ Changes
 Version 0.x
 -----------
 
-Unreleased
+- Stop support for python 3.6 and 3.7. Start support for python3
+  3.11 and 3.12. (`#41`)
 
 Version 0.3
 -----------
