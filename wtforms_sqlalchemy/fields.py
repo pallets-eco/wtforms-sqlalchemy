@@ -2,6 +2,7 @@
 Useful form fields for use with SQLAlchemy ORM.
 """
 import operator
+from collections import defaultdict
 
 from wtforms import widgets
 from wtforms.fields import SelectFieldBase
@@ -48,6 +49,14 @@ class QuerySelectField(SelectFieldBase):
     model instance and expected to return the label text. Otherwise, the model
     object's `__str__` will be used.
 
+    Specify `get_group` to allow `option` elements to be grouped into `optgroup`
+    sections.  If a string, this is the name of an attribute on the model 
+    containing the group name.  If a one-argument callable, this callable will 
+    be passed the model instance and expected to return a group name.  Otherwise, 
+    the `option` elements will not be grouped.  Note: the result of `get_group`
+    will be used as both the grouping key and the display label in the `select`
+    options.
+
     If `allow_blank` is set to `True`, then a blank choice will be added to the
     top of the list. Selecting this choice will result in the `data` property
     being `None`. The label for this blank choice can be set by specifying the
@@ -63,6 +72,7 @@ class QuerySelectField(SelectFieldBase):
         query_factory=None,
         get_pk=None,
         get_label=None,
+        get_group=None,
         allow_blank=False,
         blank_text="",
         **kwargs
@@ -85,6 +95,15 @@ class QuerySelectField(SelectFieldBase):
             self.get_label = operator.attrgetter(get_label)
         else:
             self.get_label = get_label
+
+        if get_group is None:
+            self._has_groups = False
+        else:
+            self._has_groups = True
+            if isinstance(get_group, str):
+                self.get_group = operator.attrgetter(get_group)
+            else:
+                self.get_group = get_group
 
         self.allow_blank = allow_blank
         self.blank_text = blank_text
@@ -118,6 +137,28 @@ class QuerySelectField(SelectFieldBase):
 
         for pk, obj in self._get_object_list():
             yield (pk, self.get_label(obj), obj == self.data)
+
+    def has_groups(self):
+        return self._has_groups
+
+    def iter_groups(self):
+        if self.has_groups():
+            groups = defaultdict(list)
+            for pk, obj in self._get_object_list():
+                groups[self.get_group(obj)].append((pk, obj))
+            for group, choices in groups.items():
+                yield (group, self._choices_generator(choices))
+
+    def _choices_generator(self, choices):
+        if not choices:
+            _choices = []
+        else:
+            _choices = choices
+
+        for pk, obj in _choices:
+            yield (pk, self.get_label(obj), obj == self.data, self.get_render_kw(obj))
+
+
 
     def process_formdata(self, valuelist):
         if valuelist:
