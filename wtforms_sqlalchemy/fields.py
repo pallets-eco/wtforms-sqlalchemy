@@ -50,9 +50,9 @@ class QuerySelectField(SelectFieldBase):
     object's `__str__` will be used.
 
     Specify `get_group` to allow `option` elements to be grouped into `optgroup`
-    sections.  If a string, this is the name of an attribute on the model 
-    containing the group name.  If a one-argument callable, this callable will 
-    be passed the model instance and expected to return a group name.  Otherwise, 
+    sections.  If a string, this is the name of an attribute on the model
+    containing the group name.  If a one-argument callable, this callable will
+    be passed the model instance and expected to return a group name.  Otherwise,
     the `option` elements will not be grouped.  Note: the result of `get_group`
     will be used as both the grouping key and the display label in the `select`
     options.
@@ -157,8 +157,6 @@ class QuerySelectField(SelectFieldBase):
 
         for pk, obj in _choices:
             yield (pk, self.get_label(obj), obj == self.data, self.get_render_kw(obj))
-
-
 
     def process_formdata(self, valuelist):
         if valuelist:
