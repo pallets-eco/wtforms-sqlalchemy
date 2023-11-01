@@ -48,6 +48,12 @@ class QuerySelectField(SelectFieldBase):
     model instance and expected to return the label text. Otherwise, the model
     object's `__str__` will be used.
 
+    Specify `get_render_kw` to apply HTML attributes to each option. If a
+    string, this is the name of an attribute on the model containing a
+    dictionary.  If a one-argument callable, this callable will be passed the
+    model instance and expected to return a dictionary.  Otherwise, an empty
+    dictionary will be used.
+
     If `allow_blank` is set to `True`, then a blank choice will be added to the
     top of the list. Selecting this choice will result in the `data` property
     being `None`. The label for this blank choice can be set by specifying the
@@ -63,6 +69,7 @@ class QuerySelectField(SelectFieldBase):
         query_factory=None,
         get_pk=None,
         get_label=None,
+        get_render_kw=None,
         allow_blank=False,
         blank_text="",
         **kwargs
@@ -85,6 +92,13 @@ class QuerySelectField(SelectFieldBase):
             self.get_label = operator.attrgetter(get_label)
         else:
             self.get_label = get_label
+
+        if get_render_kw is None:
+            self.get_render_kw = lambda _: {}
+        elif isinstance(get_render_kw, str):
+            self.get_render_kw = operator.attrgetter(get_render_kw)
+        else:
+            self.get_render_kw = get_render_kw
 
         self.allow_blank = allow_blank
         self.blank_text = blank_text
@@ -114,10 +128,10 @@ class QuerySelectField(SelectFieldBase):
 
     def iter_choices(self):
         if self.allow_blank:
-            yield ("__None", self.blank_text, self.data is None)
+            yield ("__None", self.blank_text, self.data is None, {})
 
         for pk, obj in self._get_object_list():
-            yield (pk, self.get_label(obj), obj == self.data)
+            yield (pk, self.get_label(obj), obj == self.data, self.get_render_kw(obj))
 
     def process_formdata(self, valuelist):
         if valuelist:
@@ -186,7 +200,7 @@ class QuerySelectMultipleField(QuerySelectField):
 
     def iter_choices(self):
         for pk, obj in self._get_object_list():
-            yield (pk, self.get_label(obj), obj in self.data)
+            yield (pk, self.get_label(obj), obj in self.data, self.get_render_kw(obj))
 
     def process_formdata(self, valuelist):
         self._formdata = set(valuelist)
