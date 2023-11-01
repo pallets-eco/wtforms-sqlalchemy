@@ -6,9 +6,9 @@ import inspect
 from wtforms import fields as wtforms_fields
 from wtforms import validators
 from wtforms.form import Form
+from sqlalchemy.orm import RelationshipProperty
 
-from .fields import QuerySelectField
-from .fields import QuerySelectMultipleField
+from .fields import ModelFieldList, QuerySelectField, QuerySelectMultipleField
 
 __all__ = (
     "model_fields",
@@ -75,7 +75,7 @@ class ModelConverterBase:
             % (column.name, types[0])
         )
 
-    def convert(self, model, mapper, prop, field_args, db_session=None):
+    def convert(self, model, mapper, prop, field_args, db_session=None, embed=False):
         if not hasattr(prop, "columns") and not hasattr(prop, "direction"):
             return
         elif not hasattr(prop, "direction") and len(prop.columns) != 1:
@@ -153,7 +153,7 @@ class ModelConverterBase:
             converter = self.converters[prop.direction.name]
 
         return converter(
-            model=model, mapper=mapper, prop=prop, column=column, field_args=kwargs
+            model=model, mapper=mapper, prop=prop, column=column, field_args=kwargs, embed=embed, db_session=db_session
         )
 
 
@@ -233,8 +233,21 @@ class ModelConverter(ModelConverterBase):
     def conv_ManyToOne(self, field_args, **extra):
         return QuerySelectField(**field_args)
 
-    @converts("MANYTOMANY", "ONETOMANY")
-    def conv_ManyToMany(self, field_args, **extra):
+    @converts("ONETOMANY")
+    def conv_OneToMany(self, field_args, prop, embed, db_session, **extra):
+        if embed:            
+            RelatedModel = prop.entity.class_
+            sub_embed = embed.get(prop.key, False) if isinstance(embed,dict) else True
+            if not sub_embed: 
+                return
+
+            RelatedModelForm = model_form(RelatedModel, db_session=db_session, embed=sub_embed, exclude=prop.back_populates)
+            return ModelFieldList(wtforms_fields.FormField(RelatedModelForm), model=RelatedModel)
+
+        return QuerySelectMultipleField(**field_args)
+
+    @converts("MANYTOMANY")
+    def conv_ManyToMany(self, field_args, prop, db_session, **extra):
         return QuerySelectMultipleField(**field_args)
 
 
@@ -247,6 +260,7 @@ def model_fields(
     converter=None,
     exclude_pk=False,
     exclude_fk=False,
+    embed=False,
 ):
     """
     Generate a dictionary of fields for a given SQLAlchemy model.
@@ -257,6 +271,7 @@ def model_fields(
     converter = converter or ModelConverter()
     field_args = field_args or {}
     properties = []
+    relationship_properties = []
 
     for prop in mapper.iterate_properties:
         if getattr(prop, "columns", None):
@@ -265,7 +280,12 @@ def model_fields(
             elif exclude_pk and prop.columns[0].primary_key:
                 continue
 
-        properties.append((prop.key, prop))
+        if isinstance(prop, RelationshipProperty):
+            relationship_properties.append((prop.key, prop))
+        else:
+            properties.append((prop.key, prop))
+
+    properties += relationship_properties
 
     # ((p.key, p) for p in mapper.iterate_properties)
     if only:
@@ -275,7 +295,7 @@ def model_fields(
 
     field_dict = {}
     for name, prop in properties:
-        field = converter.convert(model, mapper, prop, field_args.get(name), db_session)
+        field = converter.convert(model, mapper, prop, field_args.get(name), db_session, embed)
         if field is not None:
             field_dict[name] = field
 
@@ -293,6 +313,7 @@ def model_form(
     exclude_pk=True,
     exclude_fk=True,
     type_name=None,
+    embed=False,
 ):
     """
     Create a wtforms Form for a given SQLAlchemy model class::
@@ -325,6 +346,12 @@ def model_form(
         An optional boolean to force foreign keys exclusion.
     :param type_name:
         An optional string to set returned type name.
+    :param embed:
+        An optional boolean or dictionary specifying whether and/or how to embed 
+        relations in model. If set to True, fields for all related models are 
+        generated. If set to a dictionary, all specified fields will be embedded
+        (Example: embed={'student': {courses: False}}, where 'student' will get 
+        fields but 'courses' will not)
     """
     if not hasattr(model, "_sa_class_manager"):
         raise TypeError("model must be a sqlalchemy mapped model")
@@ -339,5 +366,6 @@ def model_form(
         converter,
         exclude_pk=exclude_pk,
         exclude_fk=exclude_fk,
+        embed=embed,
     )
     return type(type_name, (base_class,), field_dict)
