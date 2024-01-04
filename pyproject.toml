@@ -1,0 +1,12 @@
+[tool.coverage.run]
+branch = true
+source = ["wtforms_sqlalchemy", "tests"]
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "except ImportError:",
+]
