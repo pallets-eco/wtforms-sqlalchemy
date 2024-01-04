@@ -250,7 +250,7 @@ class QuerySelectMultipleFieldTest(TestBase):
         self.assertFalse(form.validate())
 
     def test_single_default_value(self):
-        first_test = self.sess.query(self.Test).get(2)
+        first_test = self.sess.get(self.Test, 2)
 
         class F(Form):
             a = QuerySelectMultipleField(
