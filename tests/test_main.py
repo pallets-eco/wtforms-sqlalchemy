@@ -8,13 +8,13 @@ from sqlalchemy.dialects.mysql import YEAR
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.dialects.postgresql import MACADDR
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import registry
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import ColumnDefault
-from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Table
 from wtforms import fields
 from wtforms import Form
@@ -51,18 +51,18 @@ class AnotherInteger(sqla_types.Integer):
 
 class TestBase(TestCase):
     def _do_tables(self, mapper, engine):
-        metadata = MetaData()
+        mapper_registry = registry()
 
         test_table = Table(
             "test",
-            metadata,
+            mapper_registry.metadata,
             Column("id", sqla_types.Integer, primary_key=True, nullable=False),
             Column("name", sqla_types.String, nullable=False),
         )
 
         pk_test_table = Table(
             "pk_test",
-            metadata,
+            mapper_registry.metadata,
             Column("foobar", sqla_types.String, primary_key=True, nullable=False),
             Column("baz", sqla_types.String, nullable=False),
         )
@@ -74,12 +74,12 @@ class TestBase(TestCase):
             {"__unicode__": lambda x: x.baz, "__str__": lambda x: x.baz},
         )
 
-        mapper(Test, test_table)
-        mapper(PKTest, pk_test_table)
+        mapper_registry.map_imperatively(Test, test_table)
+        mapper_registry.map_imperatively(PKTest, pk_test_table)
         self.Test = Test
         self.PKTest = PKTest
 
-        metadata.create_all(bind=engine)
+        mapper_registry.metadata.create_all(bind=engine)
 
     def _fill(self, sess):
         for i, n in [(1, "apple"), (2, "banana")]:
