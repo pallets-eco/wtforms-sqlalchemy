@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    wtforms_sqlalchemy
+   changes
 
 
 Indices and tables
