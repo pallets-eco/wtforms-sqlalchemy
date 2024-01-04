@@ -16,6 +16,10 @@ Released on November 6th, 2021
 -  SQLAlchemy 1.4 tests fixes. (`#34`_)
 -  Switched from Travis CI to Github Actions (`#33`_)
 -  Abandon deperecated validator. (`#32`_)
+-  Stop support for python < 3.8; start support for python 3.12 (`#41`_)
+-  ``render_kw`` support (`#42`_)
+-  ``optgroup`` support (`#44`_)
+-  SQLAlchemy 2.0 support (`#45`_)
 
 Version 0.2
 -----------
