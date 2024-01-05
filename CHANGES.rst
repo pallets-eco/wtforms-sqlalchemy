@@ -1,5 +1,7 @@
-Unreleased
-----------
+Version 0.4.1
+-------------
+
+Released on January 5th, 2024
 
 -  Allow to override the default blank value. (:pr:`38`)
 
