@@ -46,7 +46,7 @@ class Base:
 
 
 class AnotherInteger(sqla_types.Integer):
-    """Use me to test if MRO works like we want"""
+    """Use me to test if MRO works like we want."""
 
 
 class TestBase(TestCase):

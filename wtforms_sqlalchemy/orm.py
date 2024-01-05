@@ -1,6 +1,4 @@
-"""
-Tools for generating forms based on SQLAlchemy models.
-"""
+"""Tools for generating forms based on SQLAlchemy models."""
 import inspect
 
 from sqlalchemy import inspect as sainspect
@@ -46,10 +44,8 @@ class ModelConverterBase:
         self.converters = converters
 
     def get_converter(self, column):
-        """
-        Searches `self.converters` for a converter method with an argument that
-        matches the column's type.
-        """
+        """Searches `self.converters` for a converter method with an argument
+        that matches the column's type."""
         if self.use_mro:
             types = inspect.getmro(type(column.type))
         else:
@@ -253,8 +249,7 @@ def model_fields(
     exclude_pk=False,
     exclude_fk=False,
 ):
-    """
-    Generate a dictionary of fields for a given SQLAlchemy model.
+    """Generate a dictionary of fields for a given SQLAlchemy model.
 
     See `model_form` docstring for description of parameters.
     """

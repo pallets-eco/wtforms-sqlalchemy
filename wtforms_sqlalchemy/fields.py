@@ -1,6 +1,4 @@
-"""
-Useful form fields for use with SQLAlchemy ORM.
-"""
+"""Useful form fields for use with SQLAlchemy ORM."""
 import operator
 from collections import defaultdict
 
@@ -25,8 +23,7 @@ __all__ = (
 
 
 class QuerySelectField(SelectFieldBase):
-    """
-    Will display a select drop-down field to choose between ORM results in a
+    """Will display a select drop-down field to choose between ORM results in a
     sqlalchemy `Query`.  The `data` property actually will store/keep an ORM
     model instance, not the ID. Submitting a choice which is not in the query
     will result in a validation error.
@@ -197,13 +194,12 @@ class QuerySelectField(SelectFieldBase):
 
 
 class QuerySelectMultipleField(QuerySelectField):
-    """
-    Very similar to QuerySelectField with the difference that this will
+    """Very similar to QuerySelectField with the difference that this will
     display a multiple select. The data property will hold a list with ORM
     model instances and will be an empty list when no value is selected.
 
-    If any of the items in the data list or submitted form data cannot be
-    found in the query, this will result in a validation error.
+    If any of the items in the data list or submitted form data cannot
+    be found in the query, this will result in a validation error.
     """
 
     widget = widgets.Select(multiple=True)
