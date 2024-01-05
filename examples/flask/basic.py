@@ -1,9 +1,8 @@
-from wtforms_sqlalchemy.orm import model_form
-
 from flask import Flask
 from flask import render_template
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
+from wtforms_sqlalchemy.orm import model_form
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sample_db.sqlite"

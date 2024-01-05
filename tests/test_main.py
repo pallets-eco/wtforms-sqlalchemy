@@ -1,9 +1,4 @@
 from unittest import TestCase
-from wtforms_sqlalchemy.fields import QuerySelectField
-from wtforms_sqlalchemy.fields import QuerySelectMultipleField
-from wtforms_sqlalchemy.orm import model_form
-from wtforms_sqlalchemy.orm import ModelConversionError
-from wtforms_sqlalchemy.orm import ModelConverter
 
 from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey
@@ -13,19 +8,24 @@ from sqlalchemy.dialects.mysql import YEAR
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.dialects.postgresql import MACADDR
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import registry
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import ColumnDefault
-from sqlalchemy.schema import MetaData
 from sqlalchemy.schema import Table
 from wtforms import fields
 from wtforms import Form
 from wtforms.validators import InputRequired
 from wtforms.validators import Optional
 from wtforms.validators import Regexp
+from wtforms_sqlalchemy.fields import QuerySelectField
+from wtforms_sqlalchemy.fields import QuerySelectMultipleField
+from wtforms_sqlalchemy.orm import model_form
+from wtforms_sqlalchemy.orm import ModelConversionError
+from wtforms_sqlalchemy.orm import ModelConverter
 
 from .common import contains_validator
 from .common import DummyPostData
@@ -34,7 +34,8 @@ from .common import DummyPostData
 class LazySelect:
     def __call__(self, field, **kwargs):
         return list(
-            (val, str(label), selected) for val, label, selected in field.iter_choices()
+            (val, str(label), selected, render_kw)
+            for val, label, selected, render_kw in field.iter_choices()
         )
 
 
@@ -50,18 +51,18 @@ class AnotherInteger(sqla_types.Integer):
 
 class TestBase(TestCase):
     def _do_tables(self, mapper, engine):
-        metadata = MetaData()
+        mapper_registry = registry()
 
         test_table = Table(
             "test",
-            metadata,
+            mapper_registry.metadata,
             Column("id", sqla_types.Integer, primary_key=True, nullable=False),
             Column("name", sqla_types.String, nullable=False),
         )
 
         pk_test_table = Table(
             "pk_test",
-            metadata,
+            mapper_registry.metadata,
             Column("foobar", sqla_types.String, primary_key=True, nullable=False),
             Column("baz", sqla_types.String, nullable=False),
         )
@@ -73,12 +74,12 @@ class TestBase(TestCase):
             {"__unicode__": lambda x: x.baz, "__str__": lambda x: x.baz},
         )
 
-        mapper(Test, test_table)
-        mapper(PKTest, pk_test_table)
+        mapper_registry.map_imperatively(Test, test_table)
+        mapper_registry.map_imperatively(PKTest, pk_test_table)
         self.Test = Test
         self.PKTest = PKTest
 
-        metadata.create_all(bind=engine)
+        mapper_registry.metadata.create_all(bind=engine)
 
     def _fill(self, sess):
         for i, n in [(1, "apple"), (2, "banana")]:
@@ -111,7 +112,9 @@ class QuerySelectFieldTest(TestBase):
         form.a.query = sess.query(self.Test)
         self.assertTrue(form.a.data is not None)
         self.assertEqual(form.a.data.id, 1)
-        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
+        self.assertEqual(
+            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+        )
         self.assertTrue(form.validate())
 
         form = F(a=sess.query(self.Test).filter_by(name="banana").first())
@@ -151,39 +154,51 @@ class QuerySelectFieldTest(TestBase):
 
         form = F()
         self.assertEqual(form.a.data, None)
-        self.assertEqual(form.a(), [("1", "apple", False), ("2", "banana", False)])
+        self.assertEqual(
+            form.a(), [("1", "apple", False, {}), ("2", "banana", False, {})]
+        )
         self.assertEqual(form.b.data, None)
         self.assertEqual(
             form.b(),
             [
-                ("__None", "", True),
-                ("hello1", "apple", False),
-                ("hello2", "banana", False),
+                ("__None", "", True, {}),
+                ("hello1", "apple", False, {}),
+                ("hello2", "banana", False, {}),
             ],
         )
         self.assertEqual(form.c.data, None)
         self.assertEqual(
             form.c(),
-            [("", "", True), ("hello1", "apple", False), ("hello2", "banana", False)],
+            [
+                ("", "", True, {}),
+                ("hello1", "apple", False, {}),
+                ("hello2", "banana", False, {}),
+            ],
         )
         self.assertFalse(form.validate())
 
         form = F(DummyPostData(a=["1"], b=["hello2"], c=[""]))
         self.assertEqual(form.a.data.id, 1)
-        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
+        self.assertEqual(
+            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+        )
         self.assertEqual(form.b.data.baz, "banana")
         self.assertEqual(
             form.b(),
             [
-                ("__None", "", False),
-                ("hello1", "apple", False),
-                ("hello2", "banana", True),
+                ("__None", "", False, {}),
+                ("hello1", "apple", False, {}),
+                ("hello2", "banana", True, {}),
             ],
         )
         self.assertEqual(form.c.data, None)
         self.assertEqual(
             form.c(),
-            [("", "", True), ("hello1", "apple", False), ("hello2", "banana", False)],
+            [
+                ("", "", True, {}),
+                ("hello1", "apple", False, {}),
+                ("hello2", "banana", False, {}),
+            ],
         )
         self.assertTrue(form.validate())
 
@@ -191,11 +206,17 @@ class QuerySelectFieldTest(TestBase):
         sess.add(self.Test(id=3, name="meh"))
         sess.flush()
         sess.commit()
-        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
+        self.assertEqual(
+            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+        )
         form.a._object_list = None
         self.assertEqual(
             form.a(),
-            [("1", "apple", True), ("2", "banana", False), ("3", "meh", False)],
+            [
+                ("1", "apple", True, {}),
+                ("2", "banana", False, {}),
+                ("3", "meh", False, {}),
+            ],
         )
 
         # Test bad data
@@ -234,14 +255,18 @@ class QuerySelectMultipleFieldTest(TestBase):
         form = self.F(DummyPostData(a=["1"]))
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([1], [v.id for v in form.a.data])
-        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", False)])
+        self.assertEqual(
+            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+        )
         self.assertTrue(form.validate())
 
     def test_multiple_values_without_query_factory(self):
         form = self.F(DummyPostData(a=["1", "2"]))
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([1, 2], [v.id for v in form.a.data])
-        self.assertEqual(form.a(), [("1", "apple", True), ("2", "banana", True)])
+        self.assertEqual(
+            form.a(), [("1", "apple", True, {}), ("2", "banana", True, {})]
+        )
         self.assertTrue(form.validate())
 
         form = self.F(DummyPostData(a=["1", "3"]))
@@ -250,7 +275,7 @@ class QuerySelectMultipleFieldTest(TestBase):
         self.assertFalse(form.validate())
 
     def test_single_default_value(self):
-        first_test = self.sess.query(self.Test).get(2)
+        first_test = self.sess.get(self.Test, 2)
 
         class F(Form):
             a = QuerySelectMultipleField(
@@ -262,7 +287,9 @@ class QuerySelectMultipleFieldTest(TestBase):
 
         form = F()
         self.assertEqual([v.id for v in form.a.data], [2])
-        self.assertEqual(form.a(), [("1", "apple", False), ("2", "banana", True)])
+        self.assertEqual(
+            form.a(), [("1", "apple", False, {}), ("2", "banana", True, {})]
+        )
         self.assertTrue(form.validate())
 
 

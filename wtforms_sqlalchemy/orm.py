@@ -3,6 +3,7 @@ Tools for generating forms based on SQLAlchemy models.
 """
 import inspect
 
+from sqlalchemy import inspect as sainspect
 from wtforms import fields as wtforms_fields
 from wtforms import validators
 from wtforms.form import Form
@@ -211,19 +212,23 @@ class ModelConverter(ModelConverterBase):
         field_args["validators"].append(validators.NumberRange(min=1901, max=2155))
         return wtforms_fields.StringField(**field_args)
 
-    @converts("dialects.postgresql.base.INET")
+    @converts("dialects.postgresql.types.INET", "dialects.postgresql.base.INET")
     def conv_PGInet(self, field_args, **extra):
         field_args.setdefault("label", "IP Address")
         field_args["validators"].append(validators.IPAddress())
         return wtforms_fields.StringField(**field_args)
 
-    @converts("dialects.postgresql.base.MACADDR")
+    @converts("dialects.postgresql.types.MACADDR", "dialects.postgresql.base.MACADDR")
     def conv_PGMacaddr(self, field_args, **extra):
         field_args.setdefault("label", "MAC Address")
         field_args["validators"].append(validators.MacAddress())
         return wtforms_fields.StringField(**field_args)
 
-    @converts("dialects.postgresql.base.UUID")
+    @converts(
+        "sql.sqltypes.UUID",
+        "dialects.postgresql.types.UUID",
+        "dialects.postgresql.base.UUID",
+    )
     def conv_PGUuid(self, field_args, **extra):
         field_args.setdefault("label", "UUID")
         field_args["validators"].append(validators.UUID())
@@ -253,12 +258,12 @@ def model_fields(
 
     See `model_form` docstring for description of parameters.
     """
-    mapper = model._sa_class_manager.mapper
+    mapper = sainspect(model)
     converter = converter or ModelConverter()
     field_args = field_args or {}
     properties = []
 
-    for prop in mapper.iterate_properties:
+    for prop in mapper.attrs.values():
         if getattr(prop, "columns", None):
             if exclude_fk and prop.columns[0].foreign_keys:
                 continue
@@ -297,7 +302,7 @@ def model_form(
     """
     Create a wtforms Form for a given SQLAlchemy model class::
 
-        from wtalchemy.orm import model_form
+        from wtforms_sqlalchemy.orm import model_form
         from myapp.models import User
         UserForm = model_form(User)
 

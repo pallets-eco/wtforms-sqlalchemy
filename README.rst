@@ -1,8 +1,8 @@
 WTForms-SQLAlchemy
 ==================
 
-.. image:: https://travis-ci.org/wtforms/wtforms-sqlalchemy.svg?branch=master
-    :target: https://travis-ci.org/wtforms/wtforms-sqlalchemy
+.. image:: https://github.com/wtforms/wtforms-sqlalchemy/actions/workflows/tests.yaml/badge.svg
+    :target: https://github.com/wtforms/wtforms-sqlalchemy/actions/workflows/tests.yaml
 .. image:: https://readthedocs.org/projects/wtforms-sqlalchemy/badge/?version=latest&style=flat
     :target: https://wtforms-sqlalchemy.readthedocs.io
 
@@ -13,8 +13,6 @@ function the same as ``wtforms.ext.sqlalchemy`` did.
 to install::
 
     pip install WTForms-SQLAlchemy
-
-Python 3.6 to 3.10 are supported.
 
 An example using Flask is included in ``examples/flask``.
 
