@@ -33,7 +33,7 @@ your forms.
         form.blog.query = Blog.query.filter(Blog.author == request.user).order_by(Blog.name)
 
 
-.. autoclass:: QuerySelectField(default field args, query_factory=None, get_pk=None, get_label=None, allow_blank=False, blank_text=u'', blank_value=u'__None')
+.. autoclass:: QuerySelectField(default field args, query_factory=None, get_pk=None, get_label=None, allow_blank=False, blank_text='', blank_value='__None')
 
 .. autoclass:: QuerySelectMultipleField(default field args, query_factory=None, get_pk=None, get_label=None)
 
