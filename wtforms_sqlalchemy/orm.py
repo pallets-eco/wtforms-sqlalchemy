@@ -120,7 +120,7 @@ class ModelConverterBase:
 
             kwargs["default"] = default
 
-            if column.nullable:
+            if column.nullable or default is not None:
                 kwargs["validators"].append(validators.Optional())
             else:
                 kwargs["validators"].append(validators.InputRequired())
