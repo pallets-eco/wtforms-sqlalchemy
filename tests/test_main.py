@@ -457,11 +457,13 @@ class ModelFormColumnDefaultTest(TestCase):
     def test_column_default_callable(self):
         student_form = model_form(self.StudentDefaultScoreCallable, self.sess)()
         self.assertEqual(student_form._fields["score"].default, 5)
+        assert not contains_validator(student_form.score, InputRequired)
 
     def test_column_default_scalar(self):
         student_form = model_form(self.StudentDefaultScoreScalar, self.sess)()
         assert not isinstance(student_form._fields["score"].default, ColumnDefault)
         self.assertEqual(student_form._fields["score"].default, 10)
+        assert not contains_validator(student_form.score, InputRequired)
 
 
 class ModelFormTest2(TestCase):
