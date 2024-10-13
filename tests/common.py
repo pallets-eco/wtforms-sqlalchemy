@@ -68,8 +68,8 @@ def assert_raises_text(e_type, text):
     except e_type as e:
         if not re.match(text, e.args[0]):
             raise AssertionError(
-                "Exception raised: %r but text %r did not match pattern %r"
-                % (e, e.args[0], text)
+                f"Exception raised: {e!r} but text {e.args[0]!r} "
+                f"did not match pattern {text!r}"
             ) from e
     else:
         raise AssertionError(f"Expected Exception {e_type!r}, did not get it")

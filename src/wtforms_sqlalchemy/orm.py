@@ -1,4 +1,5 @@
 """Tools for generating forms based on SQLAlchemy models."""
+
 import inspect
 
 from sqlalchemy import inspect as sainspect
@@ -68,8 +69,7 @@ class ModelConverterBase:
                 return self.converters[col_type.__name__]
 
         raise ModelConversionError(
-            "Could not find field converter for column %s (%r)."
-            % (column.name, types[0])
+            f"Could not find field converter for column {column.name} ({types[0]!r})."
         )
 
     def convert(self, model, mapper, prop, field_args, db_session=None):
@@ -130,7 +130,7 @@ class ModelConverterBase:
             # We have a property with a direction.
             if db_session is None:
                 raise ModelConversionError(
-                    "Cannot convert field %s, need DB session." % prop.key
+                    f"Cannot convert field {prop.key}, need DB session."
                 )
 
             foreign_model = prop.mapper.class_

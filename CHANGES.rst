@@ -1,3 +1,15 @@
+Version 0.x.x
+-------------
+
+Unreleased
+
+- move the project to pallets-eco organization
+- move from `master` branch to `main`
+- move to pyproject.toml
+- move to src directory
+- remove python 3.8 support
+- use pre-commit configuration from flask
+
 Version 0.4.1
 -------------
 

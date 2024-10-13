@@ -21,6 +21,7 @@ from wtforms import Form
 from wtforms.validators import InputRequired
 from wtforms.validators import Optional
 from wtforms.validators import Regexp
+
 from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms_sqlalchemy.orm import model_form

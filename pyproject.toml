@@ -1,3 +1,63 @@
+[project]
+name = "WTForms-SQLAlchemy"
+description = "SQLAlchemy tools for WTForms"
+readme = "README.rst"
+license = {file = "LICENSE.txt"}
+maintainers = [{name = "WTForms"}]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Internet :: WWW/HTTP :: WSGI",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "WTForms>=3.1",
+    "SQLAlchemy>=1.4",
+]
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "https://wtforms-sqlalchemy.readthedocs.io/"
+Changes = "https://wtforms-sqlalchemy.readthedocs.io/changes/"
+"Source Code" = "https://github.com/pallets-eco/wtforms-sqlalchemy/"
+"Issue Tracker" = "https://github.com/pallets-eco/wtforms-sqlalchemy/issues/"
+Chat = "https://discord.gg/pallets"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wtforms_sqlalchemy"]
+
+[tool.hatch.version]
+path = "src/wtforms_sqlalchemy/__init__.py"
+
+[tool.hatch.build]
+include = [
+    "src/",
+    "docs/",
+    "tests/",
+    "CHANGES.rst",
+    "tox.ini",
+]
+exclude = [
+    "docs/_build/",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+]
+
 [tool.coverage.run]
 branch = true
 source = ["wtforms_sqlalchemy", "tests"]
@@ -10,3 +70,23 @@ exclude_lines = [
     "pragma: no cover",
     "except ImportError:",
 ]
+
+[tool.ruff]
+src = ["src"]
+fix = true
+show-fixes = true
+output-format = "full"
+
+[tool.ruff.lint]
+select = [
+    "B",  # flake8-bugbear
+    "E",  # pycodestyle error
+    "F",  # pyflakes
+    "I",  # isort
+    "UP",  # pyupgrade
+    "W",  # pycodestyle warning
+]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+order-by-type = false
