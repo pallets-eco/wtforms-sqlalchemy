@@ -1,4 +1,5 @@
 """Useful form fields for use with SQLAlchemy ORM."""
+
 import operator
 from collections import defaultdict
 
@@ -82,7 +83,7 @@ class QuerySelectField(SelectFieldBase):
         allow_blank=False,
         blank_text="",
         blank_value="__None",
-        **kwargs
+        **kwargs,
     ):
         super().__init__(label, validators, **kwargs)
         self.query_factory = query_factory
@@ -212,7 +213,8 @@ class QuerySelectMultipleField(QuerySelectField):
             import warnings
 
             warnings.warn(
-                "allow_blank=True does not do anything for QuerySelectMultipleField."
+                "allow_blank=True does not do anything for QuerySelectMultipleField.",
+                stacklevel=2,
             )
         self._invalid_formdata = False
 

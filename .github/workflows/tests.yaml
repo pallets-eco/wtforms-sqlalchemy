@@ -3,11 +3,11 @@ name: tests
 on:
   push:
     branches:
-      - master
+      - main
       - '*.x'
   pull_request:
     branches:
-      - master
+      - main
       - '*.x'
 jobs:
   tests:
@@ -21,7 +21,6 @@ jobs:
           - '3.11'
           - '3.10'
           - '3.9'
-          - '3.8'
           - pypy-3.10
     steps:
       - uses: actions/checkout@v2
