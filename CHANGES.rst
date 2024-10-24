@@ -9,6 +9,7 @@ Unreleased
 - move to src directory
 - remove python 3.8 support
 - use pre-commit configuration from flask
+- python 3.13 support
 
 Version 0.4.1
 -------------
