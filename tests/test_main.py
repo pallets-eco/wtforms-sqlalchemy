@@ -94,11 +94,14 @@ class TestBase(TestCase):
 
 class QuerySelectFieldTest(TestBase):
     def setUp(self):
-        engine = create_engine("sqlite:///:memory:", echo=False)
-        self.Session = sessionmaker(bind=engine)
+        self.engine = create_engine("sqlite:///:memory:", echo=False)
+        self.Session = sessionmaker(bind=self.engine)
         from sqlalchemy.orm import mapper
 
-        self._do_tables(mapper, engine)
+        self._do_tables(mapper, self.engine)
+
+    def tearDown(self):
+        self.engine.dispose()
 
     def test_without_factory(self):
         sess = self.Session()
@@ -239,11 +242,15 @@ class QuerySelectMultipleFieldTest(TestBase):
     def setUp(self):
         from sqlalchemy.orm import mapper
 
-        engine = create_engine("sqlite:///:memory:", echo=False)
-        Session = sessionmaker(bind=engine)
-        self._do_tables(mapper, engine)
+        self.engine = create_engine("sqlite:///:memory:", echo=False)
+        Session = sessionmaker(bind=self.engine)
+        self._do_tables(mapper, self.engine)
         self.sess = Session()
         self._fill(self.sess)
+
+    def tearDown(self):
+        self.sess.close()
+        self.engine.dispose()
 
     class F(Form):
         a = QuerySelectMultipleField(get_label="name", widget=LazySelect())
@@ -343,11 +350,15 @@ class ModelFormTest(TestCase):
         self.Student = Student
         self.Course = Course
 
-        engine = create_engine("sqlite:///:memory:", echo=False)
-        Session = sessionmaker(bind=engine)
+        self.engine = create_engine("sqlite:///:memory:", echo=False)
+        Session = sessionmaker(bind=self.engine)
         self.metadata = Model.metadata
-        self.metadata.create_all(bind=engine)
+        self.metadata.create_all(bind=self.engine)
         self.sess = Session()
+
+    def tearDown(self):
+        self.sess.close()
+        self.engine.dispose()
 
     def test_auto_validators(self):
         course_form = model_form(self.Course, self.sess)()
@@ -449,11 +460,15 @@ class ModelFormColumnDefaultTest(TestCase):
         self.StudentDefaultScoreCallable = StudentDefaultScoreCallable
         self.StudentDefaultScoreScalar = StudentDefaultScoreScalar
 
-        engine = create_engine("sqlite:///:memory:", echo=False)
-        Session = sessionmaker(bind=engine)
+        self.engine = create_engine("sqlite:///:memory:", echo=False)
+        Session = sessionmaker(bind=self.engine)
         self.metadata = Model.metadata
-        self.metadata.create_all(bind=engine)
+        self.metadata.create_all(bind=self.engine)
         self.sess = Session()
+
+    def tearDown(self):
+        self.sess.close()
+        self.engine.dispose()
 
     def test_column_default_callable(self):
         student_form = model_form(self.StudentDefaultScoreCallable, self.sess)()
