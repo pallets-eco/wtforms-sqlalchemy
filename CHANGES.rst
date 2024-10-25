@@ -1,7 +1,7 @@
-Version 0.x.x
+Version 0.4.2
 -------------
 
-Unreleased
+Released on October 25th, 2024
 
 - move the project to pallets-eco organization
 - move from `master` branch to `main`
