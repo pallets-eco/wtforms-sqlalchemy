@@ -217,6 +217,7 @@ class QuerySelectFieldTest(TestBase):
         self.assertEqual(
             form.d(),
             [
+                (None, [("", "", True, {})]),
                 (
                     "a",
                     [("hello1", "apple", False, {}), ("hello3", "apricot", False, {})],
@@ -260,6 +261,7 @@ class QuerySelectFieldTest(TestBase):
         self.assertEqual(
             form.d(),
             [
+                (None, [("", "", False, {})]),
                 (
                     "a",
                     [("hello1", "apple", False, {}), ("hello3", "apricot", True, {})],
