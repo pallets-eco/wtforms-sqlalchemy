@@ -147,9 +147,12 @@ class QuerySelectField(SelectFieldBase):
             self._object_list = list((str(get_pk(obj)), obj) for obj in query)
         return self._object_list
 
+    def _get_blank_choice(self):
+        return (self.blank_value, self.blank_text, self.data is None, {})
+
     def iter_choices(self):
         if self.allow_blank:
-            yield (self.blank_value, self.blank_text, self.data is None, {})
+            yield self._get_blank_choice()
 
         for pk, obj in self._get_object_list():
             yield (pk, self.get_label(obj), obj == self.data, self.get_render_kw(obj))
@@ -159,6 +162,9 @@ class QuerySelectField(SelectFieldBase):
 
     def iter_groups(self):
         if self.has_groups():
+            if self.allow_blank:
+                yield (None, [self._get_blank_choice()])
+
             groups = defaultdict(list)
             for pk, obj in self._get_object_list():
                 groups[self.get_group(obj)].append((pk, obj))
