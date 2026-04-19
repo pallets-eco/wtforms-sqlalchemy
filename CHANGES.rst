@@ -1,3 +1,11 @@
+Version 0.4.3
+-------------
+
+Unreleased
+
+- Remove python 3.9 support
+- Add python 3.14 support
+
 Version 0.4.2
 -------------
 
