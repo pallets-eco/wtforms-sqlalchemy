@@ -54,7 +54,7 @@ def contains_validator(field, v_type):
 class DummyPostData(dict):
     def getlist(self, key):
         v = self[key]
-        if not isinstance(v, (list, tuple)):
+        if not isinstance(v, list | tuple):
             v = [v]
         return v
 

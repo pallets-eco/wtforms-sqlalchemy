@@ -16,12 +16,27 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "WTForms>=3.1",
     "SQLAlchemy>=1.4",
 ]
 dynamic = ["version"]
+
+[dependency-groups]
+docs = [
+    "Sphinx~=7.0.0",
+    "Pallets-Sphinx-Themes~=2.2.0",
+    "sphinx-issues~=4.0.0",
+    "sphinxcontrib-log-cabinet~=1.0.1",
+    "python-dateutil~=2.8.2",
+]
+dev = [
+    "coverage>=7.0",
+    "pytest>=8.0",
+    "prek>=0.1",
+    "tox-uv>=1.28.1",
+]
 
 [project.urls]
 Documentation = "https://wtforms-sqlalchemy.readthedocs.io/"
@@ -46,7 +61,6 @@ include = [
     "docs/",
     "tests/",
     "CHANGES.rst",
-    "tox.ini",
 ]
 exclude = [
     "docs/_build/",
@@ -57,6 +71,42 @@ testpaths = ["tests"]
 filterwarnings = [
     "error",
 ]
+
+[tool.tox]
+env_list = [
+    "py313",
+    "py312",
+    "py311",
+    "py310",
+    "pypy310",
+    "style",
+    "docs",
+    "minversions",
+]
+
+[tool.tox.env_run_base]
+runner = "uv-venv-runner"
+dependency_groups = ["dev"]
+commands = [["pytest", "{posargs}"]]
+
+[tool.tox.env.style]
+skip_install = true
+commands = [["prek", "run", "--all-files", "--show-diff-on-failure"]]
+
+[tool.tox.env.docs]
+dependency_groups = ["docs"]
+commands = [["sphinx-build", "-W", "-b", "html", "-d", "{env_tmp_dir}/doctrees", "docs", "{env_tmp_dir}/html"]]
+
+[tool.tox.env.coverage]
+commands = [
+    ["coverage", "run", "-m", "pytest", "--tb=short", "--basetemp={env_tmp_dir}", "{posargs}"],
+    ["coverage", "html"],
+    ["coverage", "report"],
+]
+
+[tool.tox.env.minversions]
+uv_resolution = "lowest-direct"
+commands = [["pytest", "--override-ini=filterwarnings=", "{posargs}"]]
 
 [tool.coverage.run]
 branch = true
