@@ -10,22 +10,22 @@ WTForms-SQLAlchemy is a fork of the ``wtforms.ext.sqlalchemy`` package from WTFo
 The package has been renamed to ``wtforms_sqlalchemy`` but otherwise should
 function the same as ``wtforms.ext.sqlalchemy`` did.
 
-to install::
+To install::
 
     pip install WTForms-SQLAlchemy
 
-An example using Flask is included in ``examples/flask``.
+An example using Flask is included in `examples/flask <https://github.com/pallets-eco/wtforms-sqlalchemy/tree/main/examples/flask>`__.
 
 Features
 --------
 
 1. Provide ``SelectField`` integration with SQLAlchemy models
 
-   - ``wtforms_sqlalchemy.fields.QuerySelectField``
-   - ``wtforms_sqlalchemy.fields.QuerySelectMultipleField``
+   - :class:`wtforms_sqlalchemy.fields.QuerySelectField`
+   - :class:`wtforms_sqlalchemy.fields.QuerySelectMultipleField`
 
 2. Generate forms from SQLAlchemy models using
-   ``wtforms_sqlalchemy.orm.model_form``
+   :func:`wtforms_sqlalchemy.orm.model_form`
 
 Rationale
 ---------
