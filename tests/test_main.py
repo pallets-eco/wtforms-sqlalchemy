@@ -40,6 +40,20 @@ class LazySelect:
         )
 
 
+class LazyGroupSelect:
+    def __call__(self, field, **kwargs):
+        return list(
+            (
+                group,
+                list(
+                    (val, str(label), selected, render_kw)
+                    for val, label, selected, render_kw in choices
+                ),
+            )
+            for group, choices in field.iter_groups()
+        )
+
+
 class Base:
     def __init__(self, **kwargs):
         for k, v in iter(kwargs.items()):
@@ -83,7 +97,7 @@ class TestBase(TestCase):
         mapper_registry.metadata.create_all(bind=engine)
 
     def _fill(self, sess):
-        for i, n in [(1, "apple"), (2, "banana")]:
+        for i, n in [(1, "apple"), (2, "banana"), (3, "apricot")]:
             s = self.Test(id=i, name=n)
             p = self.PKTest(foobar=f"hello{i}", baz=n)
             sess.add(s)
@@ -117,7 +131,12 @@ class QuerySelectFieldTest(TestBase):
         self.assertTrue(form.a.data is not None)
         self.assertEqual(form.a.data.id, 1)
         self.assertEqual(
-            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+            form.a(),
+            [
+                ("1", "apple", True, {}),
+                ("2", "banana", False, {}),
+                ("3", "apricot", False, {}),
+            ],
         )
         self.assertTrue(form.validate())
 
@@ -155,11 +174,24 @@ class QuerySelectFieldTest(TestBase):
                 query_factory=lambda: sess.query(self.PKTest),
                 widget=LazySelect(),
             )
+            d = QuerySelectField(
+                allow_blank=True,
+                blank_text="",
+                blank_value="",
+                query_factory=lambda: sess.query(self.PKTest),
+                get_group=lambda x: x.baz[0],
+                widget=LazyGroupSelect(),
+            )
 
         form = F()
         self.assertEqual(form.a.data, None)
         self.assertEqual(
-            form.a(), [("1", "apple", False, {}), ("2", "banana", False, {})]
+            form.a(),
+            [
+                ("1", "apple", False, {}),
+                ("2", "banana", False, {}),
+                ("3", "apricot", False, {}),
+            ],
         )
         self.assertEqual(form.b.data, None)
         self.assertEqual(
@@ -168,6 +200,7 @@ class QuerySelectFieldTest(TestBase):
                 ("__None", "", True, {}),
                 ("hello1", "apple", False, {}),
                 ("hello2", "banana", False, {}),
+                ("hello3", "apricot", False, {}),
             ],
         )
         self.assertEqual(form.c.data, None)
@@ -177,14 +210,32 @@ class QuerySelectFieldTest(TestBase):
                 ("", "", True, {}),
                 ("hello1", "apple", False, {}),
                 ("hello2", "banana", False, {}),
+                ("hello3", "apricot", False, {}),
+            ],
+        )
+        self.assertEqual(form.d.data, None)
+        self.assertEqual(
+            form.d(),
+            [
+                (None, [("", "", True, {})]),
+                (
+                    "a",
+                    [("hello1", "apple", False, {}), ("hello3", "apricot", False, {})],
+                ),
+                ("b", [("hello2", "banana", False, {})]),
             ],
         )
         self.assertFalse(form.validate())
 
-        form = F(DummyPostData(a=["1"], b=["hello2"], c=[""]))
+        form = F(DummyPostData(a=["1"], b=["hello2"], c=[""], d=["hello3"]))
         self.assertEqual(form.a.data.id, 1)
         self.assertEqual(
-            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+            form.a(),
+            [
+                ("1", "apple", True, {}),
+                ("2", "banana", False, {}),
+                ("3", "apricot", False, {}),
+            ],
         )
         self.assertEqual(form.b.data.baz, "banana")
         self.assertEqual(
@@ -193,6 +244,7 @@ class QuerySelectFieldTest(TestBase):
                 ("__None", "", False, {}),
                 ("hello1", "apple", False, {}),
                 ("hello2", "banana", True, {}),
+                ("hello3", "apricot", False, {}),
             ],
         )
         self.assertEqual(form.c.data, None)
@@ -202,16 +254,34 @@ class QuerySelectFieldTest(TestBase):
                 ("", "", True, {}),
                 ("hello1", "apple", False, {}),
                 ("hello2", "banana", False, {}),
+                ("hello3", "apricot", False, {}),
+            ],
+        )
+        self.assertEqual(form.d.data.baz, "apricot")
+        self.assertEqual(
+            form.d(),
+            [
+                (None, [("", "", False, {})]),
+                (
+                    "a",
+                    [("hello1", "apple", False, {}), ("hello3", "apricot", True, {})],
+                ),
+                ("b", [("hello2", "banana", False, {})]),
             ],
         )
         self.assertTrue(form.validate())
 
         # Make sure the query is cached
-        sess.add(self.Test(id=3, name="meh"))
+        sess.add(self.Test(id=4, name="meh"))
         sess.flush()
         sess.commit()
         self.assertEqual(
-            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+            form.a(),
+            [
+                ("1", "apple", True, {}),
+                ("2", "banana", False, {}),
+                ("3", "apricot", False, {}),
+            ],
         )
         form.a._object_list = None
         self.assertEqual(
@@ -219,7 +289,8 @@ class QuerySelectFieldTest(TestBase):
             [
                 ("1", "apple", True, {}),
                 ("2", "banana", False, {}),
-                ("3", "meh", False, {}),
+                ("3", "apricot", False, {}),
+                ("4", "meh", False, {}),
             ],
         )
 
@@ -264,7 +335,12 @@ class QuerySelectMultipleFieldTest(TestBase):
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([1], [v.id for v in form.a.data])
         self.assertEqual(
-            form.a(), [("1", "apple", True, {}), ("2", "banana", False, {})]
+            form.a(),
+            [
+                ("1", "apple", True, {}),
+                ("2", "banana", False, {}),
+                ("3", "apricot", False, {}),
+            ],
         )
         self.assertTrue(form.validate())
 
@@ -273,11 +349,16 @@ class QuerySelectMultipleFieldTest(TestBase):
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([1, 2], [v.id for v in form.a.data])
         self.assertEqual(
-            form.a(), [("1", "apple", True, {}), ("2", "banana", True, {})]
+            form.a(),
+            [
+                ("1", "apple", True, {}),
+                ("2", "banana", True, {}),
+                ("3", "apricot", False, {}),
+            ],
         )
         self.assertTrue(form.validate())
 
-        form = self.F(DummyPostData(a=["1", "3"]))
+        form = self.F(DummyPostData(a=["1", "4"]))
         form.a.query = self.sess.query(self.Test)
         self.assertEqual([x.id for x in form.a.data], [1])
         self.assertFalse(form.validate())
@@ -296,7 +377,12 @@ class QuerySelectMultipleFieldTest(TestBase):
         form = F()
         self.assertEqual([v.id for v in form.a.data], [2])
         self.assertEqual(
-            form.a(), [("1", "apple", False, {}), ("2", "banana", True, {})]
+            form.a(),
+            [
+                ("1", "apple", False, {}),
+                ("2", "banana", True, {}),
+                ("3", "apricot", False, {}),
+            ],
         )
         self.assertTrue(form.validate())
 
