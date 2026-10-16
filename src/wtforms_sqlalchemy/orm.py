@@ -197,7 +197,7 @@ class ModelConverter(ModelConverterBase):
             field_args["validators"].append(validators.NumberRange(min=0))
         return wtforms_fields.IntegerField(**field_args)
 
-    @converts("Numeric")  # includes DECIMAL, Float/FLOAT, REAL, and DOUBLE
+    @converts("Numeric", "Float")  # includes DECIMAL, FLOAT, REAL, and DOUBLE
     def handle_decimal_types(self, column, field_args, **extra):
         # override default decimal places limit, use database defaults instead
         field_args.setdefault("places", None)

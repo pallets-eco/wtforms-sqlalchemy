@@ -5,6 +5,7 @@ Unreleased
 
 - Remove python 3.9 support
 - Add python 3.14 support
+- Support SQLAlchemy 2.1
 
 Version 0.4.2
 -------------
